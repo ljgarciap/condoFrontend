@@ -20,8 +20,8 @@ export class ApiService {
     }
 
     // Notifications
-    getNotifications(page: number = 1, perPage: number = 10): Observable<any> {
-        return this.http.get<any>(`${this.apiUrl}/notifications`, { params: { page, per_page: perPage } });
+    getNotifications(page: number = 1, perPage: number = 10, filter: 'received' | 'sent' = 'received'): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/notifications`, { params: { page, per_page: perPage, filter } });
     }
 
     sendNotification(data: any): Observable<any> {

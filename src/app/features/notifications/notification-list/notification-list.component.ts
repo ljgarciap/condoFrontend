@@ -24,9 +24,18 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
         </button>
       </div>
 
+      <div class="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6 max-w-md">
+        <button (click)="changeTab('received')" [class]="'w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all ' + (activeTab === 'received' ? 'bg-white shadow text-indigo-700' : 'text-gray-500 hover:text-gray-700')">
+            Recibidas
+        </button>
+        <button (click)="changeTab('sent')" [class]="'w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all ' + (activeTab === 'sent' ? 'bg-white shadow text-indigo-700' : 'text-gray-500 hover:text-gray-700')">
+            Enviadas
+        </button>
+      </div>
+
       <div class="grid grid-cols-1 gap-4">
         <div *ngFor="let note of notifications()" 
-             [class]="'p-6 rounded-2xl border-l-4 shadow-sm transition-all ' + (note.read_at ? 'bg-white border-gray-200 grayscale-[0.5]' : 'bg-indigo-50 border-indigo-500 shadow-md transform hover:scale-[1.01]')">
+             [class]="'p-6 rounded-2xl border-l-4 shadow-sm transition-all ' + (activeTab === 'sent' ? 'bg-white border-gray-200' : (note.read_at ? 'bg-white border-gray-200 grayscale-[0.5]' : 'bg-indigo-50 border-indigo-500 shadow-md transform hover:scale-[1.01]'))">
             <div class="flex justify-between items-start">
                 <div class="flex-1">
                     <div class="flex items-center gap-2 mb-1">
@@ -34,7 +43,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
                             {{ note.type }}
                         </span>
                         <h3 class="font-bold text-gray-900">{{ note.title }}</h3>
-                        <span *ngIf="!note.read_at" class="flex h-2 w-2 rounded-full bg-indigo-600 animate-pulse"></span>
+                        <span *ngIf="activeTab === 'received' && !note.read_at" class="flex h-2 w-2 rounded-full bg-indigo-600 animate-pulse"></span>
                     </div>
                     <p class="text-gray-600 text-sm mb-3">{{ note.message }}</p>
                     <div *ngIf="note.attachment" class="mb-3">
@@ -53,9 +62,12 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
                         <span>{{ note.created_at | date:'medium' }}</span>
                     </div>
                 </div>
-                <button *ngIf="!note.read_at" (click)="markAsRead(note.id)" class="text-indigo-600 hover:text-indigo-800 text-xs font-bold uppercase tracking-widest px-3 py-1 hover:bg-indigo-100 rounded-lg transition-colors">
+                <button *ngIf="activeTab === 'received' && !note.read_at" (click)="markAsRead(note.id)" class="text-indigo-600 hover:text-indigo-800 text-xs font-bold uppercase tracking-widest px-3 py-1 hover:bg-indigo-100 rounded-lg transition-colors">
                     Marcar como leída
                 </button>
+                <div *ngIf="activeTab === 'sent' && note.read_at" class="text-green-600 text-xs font-bold px-3 py-1 bg-green-50 rounded border border-green-100">
+                    Leído: {{ note.read_at | date:'short' }}
+                </div>
             </div>
         </div>
 
@@ -126,6 +138,13 @@ export class NotificationListComponent implements OnInit {
 
     notifications = signal<any[]>([]);
     users = signal<any[]>([]);
+
+    // Pagination & Tabs
+    currentPage = signal(1);
+    totalPages = signal(1);
+    perPage = signal(5);
+    activeTab: 'received' | 'sent' = 'received';
+
     isModalOpen = false;
     currentNote: any = { receiver_id: null, title: '', message: '', type: 'info' };
     selectedFile: File | null = null;
@@ -138,9 +157,22 @@ export class NotificationListComponent implements OnInit {
     }
 
     loadNotifications() {
-        this.apiService.getNotifications().subscribe(response => {
+        this.apiService.getNotifications(this.currentPage(), this.perPage(), this.activeTab).subscribe(response => {
             this.notifications.set(response.data);
+            this.currentPage.set(response.current_page);
+            this.totalPages.set(response.last_page);
         });
+    }
+
+    changeTab(tab: 'received' | 'sent') {
+        this.activeTab = tab;
+        this.currentPage.set(1);
+        this.loadNotifications();
+    }
+
+    onPageChange(page: number) {
+        this.currentPage.set(page);
+        this.loadNotifications();
     }
 
     loadUsers() {
