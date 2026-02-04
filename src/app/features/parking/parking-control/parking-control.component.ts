@@ -90,6 +90,11 @@ import { AuthService } from '../../../core/services/auth.service';
                     <label class="block text-gray-700 text-sm font-bold mb-2">Capacidad Motos</label>
                     <input [(ngModel)]="settingsForm.motorcycle_capacity" name="motorcycle_capacity" type="number" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Deuda Máxima Permitida ($)</label>
+                    <input [(ngModel)]="settingsForm.max_overdue_amount" name="max_overdue_amount" type="number" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <p class="text-[10px] text-gray-500 mt-1">Si la deuda del apartamento supera este valor, el ingreso será bloqueado.</p>
+                </div>
 
                 <div class="flex justify-end gap-2">
                     <button type="button" (click)="closeSettingsModal()" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Cancelar</button>
@@ -116,7 +121,8 @@ export class ParkingControlComponent implements OnInit {
 
   // Settings Modal
   isSettingsModalOpen = false;
-  settingsForm = { car_capacity: 0, motorcycle_capacity: 0 };
+  settingsForm = { car_capacity: 0, motorcycle_capacity: 0, max_overdue_amount: 0 };
+  currentSettings: any = {};
 
   ngOnInit() {
     this.loadStatus();
@@ -126,13 +132,15 @@ export class ParkingControlComponent implements OnInit {
     this.apiService.getParkingStatus().subscribe(status => {
       this.cars = status.cars;
       this.motorcycles = status.motorcycles;
+      this.currentSettings = status.settings || {};
     });
   }
 
   openSettingsModal() {
     this.settingsForm = {
-      car_capacity: this.cars.total,
-      motorcycle_capacity: this.motorcycles.total
+      car_capacity: this.currentSettings.car_capacity || this.cars.total,
+      motorcycle_capacity: this.currentSettings.motorcycle_capacity || this.motorcycles.total,
+      max_overdue_amount: this.currentSettings.max_overdue_amount || 0
     };
     this.isSettingsModalOpen = true;
   }
@@ -183,7 +191,7 @@ export class ParkingControlComponent implements OnInit {
         } else if (err.error && err.error.message) {
           this.message = err.error.message;
         } else {
-          this.message = 'Ocurrió un error inesperado.';
+          this.message = 'Ocurrió un error inesperado al procesar la solicitud.';
         }
       }
     });

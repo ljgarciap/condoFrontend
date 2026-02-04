@@ -25,6 +25,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <a routerLink="/dashboard/parking" routerLinkActive="bg-gray-700" [routerLinkActiveOptions]="{exact: true}" class="block p-2 rounded hover:bg-gray-700">Control Parqueadero</a>
           <a routerLink="/dashboard/parking/history" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Histórico Parqueadero</a>
           <a routerLink="/dashboard/visitors" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Visitantes</a>
+          <a routerLink="/dashboard/cartera" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Cartera</a>
         </nav>
         <div class="p-4 bg-gray-900">
           <button (click)="logout()" class="w-full p-2 text-center bg-red-600 rounded hover:bg-red-700">Cerrar Sesión</button>

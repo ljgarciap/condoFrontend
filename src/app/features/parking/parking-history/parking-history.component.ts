@@ -1,11 +1,12 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../core/services/api.service';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-parking-history',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, PaginationComponent],
   template: `
     <div class="container mx-auto">
       <div class="flex justify-between items-center mb-6">
@@ -80,6 +81,17 @@ import { ApiService } from '../../../core/services/api.service';
             </tbody>
             </table>
         </div>
+
+        <app-pagination 
+          [currentPage]="paginationData.current_page"
+          [lastPage]="paginationData.last_page"
+          [total]="paginationData.total"
+          [from]="paginationData.from"
+          [to]="paginationData.to"
+          [perPage]="perPage"
+          (pageChange)="onPageChange($event)"
+          (perPageChange)="onPerPageChange($event)"
+        ></app-pagination>
       </div>
     </div>
   `,
@@ -90,21 +102,39 @@ export class ParkingHistoryComponent implements OnInit {
   movements = signal<any[]>([]);
   stationary = signal<any[]>([]);
   isLoading = signal<boolean>(false);
+  perPage = 5;
+  paginationData: any = { current_page: 1, last_page: 1, total: 0, from: 0, to: 0 };
 
   ngOnInit() {
     this.loadHistory();
   }
 
-  loadHistory() {
+  loadHistory(page: number = 1) {
     this.isLoading.set(true);
-    this.apiService.getParkingHistory().subscribe({
-      next: (data) => {
-        this.movements.set(data.movements);
-        this.stationary.set(data.stationary);
+    this.apiService.getParkingHistory(page, this.perPage).subscribe({
+      next: (response) => {
+        this.movements.set(response.movements.data);
+        this.paginationData = {
+          current_page: response.movements.current_page,
+          last_page: response.movements.last_page,
+          total: response.movements.total,
+          from: response.movements.from,
+          to: response.movements.to
+        };
+        this.stationary.set(response.stationary);
         this.isLoading.set(false);
       },
       error: () => this.isLoading.set(false)
     });
+  }
+
+  onPageChange(page: number) {
+    this.loadHistory(page);
+  }
+
+  onPerPageChange(perPage: number) {
+    this.perPage = perPage;
+    this.loadHistory(1);
   }
 
   calculateDuration(move: any): string {

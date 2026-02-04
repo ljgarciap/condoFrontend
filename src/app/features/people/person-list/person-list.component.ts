@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
     selector: 'app-person-list',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, PaginationComponent],
     template: `
     <div class="container mx-auto">
       <div class="flex justify-between items-center mb-6">
@@ -20,11 +21,11 @@ import { AuthService } from '../../../core/services/auth.service';
                 <input 
                     type="text" 
                     [(ngModel)]="searchQuery"
-                    (keyup.enter)="loadPeople()"
+                    (keyup.enter)="onSearch()"
                     placeholder="Buscar por nombre o doc..." 
                     class="border-2 border-gray-300 rounded-lg py-2 px-4 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 w-64 transition-all"
                 >
-                <button (click)="loadPeople()" class="absolute right-2 top-2 text-gray-400 hover:text-blue-500">
+                <button (click)="onSearch()" class="absolute right-2 top-2 text-gray-400 hover:text-blue-500">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                     </svg>
@@ -111,6 +112,17 @@ import { AuthService } from '../../../core/services/auth.service';
         </table>
       </div>
 
+      <app-pagination 
+        [currentPage]="paginationData.current_page"
+        [lastPage]="paginationData.last_page"
+        [total]="paginationData.total"
+        [from]="paginationData.from"
+        [to]="paginationData.to"
+        [perPage]="perPage"
+        (pageChange)="onPageChange($event)"
+        (perPageChange)="onPerPageChange($event)"
+      ></app-pagination>
+
        <!-- Modal -->
       <div *ngIf="isModalOpen" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm overflow-y-auto h-full w-full flex items-center justify-center z-50">
         <div class="relative p-6 border w-[450px] shadow-2xl rounded-2xl bg-white border-gray-200">
@@ -177,6 +189,8 @@ export class PersonListComponent implements OnInit {
 
     people = signal<any[]>([]);
     searchQuery = '';
+    perPage = 5;
+    paginationData: any = { current_page: 1, last_page: 1, total: 0, from: 0, to: 0 };
 
     // Modal State
     isModalOpen = false;
@@ -187,11 +201,30 @@ export class PersonListComponent implements OnInit {
         this.loadPeople();
     }
 
-    loadPeople() {
-        this.apiService.getPeople(this.searchQuery).subscribe(response => {
-            // Handle Laravel pagination response
-            this.people.set(response.data || response);
+    loadPeople(page: number = 1) {
+        this.apiService.getPeople(page, this.searchQuery, this.perPage).subscribe(response => {
+            this.people.set(response.data);
+            this.paginationData = {
+                current_page: response.current_page,
+                last_page: response.last_page,
+                total: response.total,
+                from: response.from,
+                to: response.to
+            };
         });
+    }
+
+    onPageChange(page: number) {
+        this.loadPeople(page);
+    }
+
+    onSearch() {
+        this.loadPeople(1);
+    }
+
+    onPerPageChange(perPage: number) {
+        this.perPage = perPage;
+        this.loadPeople(1);
     }
 
     openModal(person: any = null) {

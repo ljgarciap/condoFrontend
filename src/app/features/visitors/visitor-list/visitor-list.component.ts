@@ -2,11 +2,12 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-visitor-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   template: `
     <div class="container mx-auto">
       <div class="flex justify-between items-center mb-4">
@@ -60,6 +61,17 @@ import { ApiService } from '../../../core/services/api.service';
           </tbody>
         </table>
       </div>
+
+      <app-pagination 
+        [currentPage]="paginationData.current_page"
+        [lastPage]="paginationData.last_page"
+        [total]="paginationData.total"
+        [from]="paginationData.from"
+        [to]="paginationData.to"
+        [perPage]="perPage"
+        (pageChange)="onPageChange($event)"
+        (perPageChange)="onPerPageChange($event)"
+      ></app-pagination>
 
       <!-- Modal -->
       <div *ngIf="isModalOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50 py-10">
@@ -121,17 +133,37 @@ export class VisitorListComponent implements OnInit {
   apiService = inject(ApiService);
   visits = signal<any[]>([]);
   apartments: any[] = [];
+  perPage = 5;
+  paginationData: any = { current_page: 1, last_page: 1, total: 0, from: 0, to: 0 };
 
   isModalOpen = false;
   newVisit: any = { document: '', document_type: 'CC', name: '', phone: '', apartment_id: null, reason: '' };
 
   ngOnInit() {
     this.loadVisits();
-    this.apiService.getApartments().subscribe(data => this.apartments = data);
+    this.apiService.getApartments(1, '').subscribe(response => this.apartments = response.data || response);
   }
 
-  loadVisits() {
-    this.apiService.getVisits().subscribe(data => this.visits.set(data));
+  loadVisits(page: number = 1) {
+    this.apiService.getVisits(page, '', this.perPage).subscribe(response => {
+      this.visits.set(response.data);
+      this.paginationData = {
+        current_page: response.current_page,
+        last_page: response.last_page,
+        total: response.total,
+        from: response.from,
+        to: response.to
+      };
+    });
+  }
+
+  onPageChange(page: number) {
+    this.loadVisits(page);
+  }
+
+  onPerPageChange(perPage: number) {
+    this.perPage = perPage;
+    this.loadVisits(1);
   }
 
   fetchPerson() {

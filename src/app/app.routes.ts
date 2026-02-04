@@ -38,6 +38,10 @@ export const routes: Routes = [
             {
                 path: 'visitors',
                 loadComponent: () => import('./features/visitors/visitor-list/visitor-list.component').then(m => m.VisitorListComponent)
+            },
+            {
+                path: 'cartera',
+                loadComponent: () => import('./features/cartera/cartera-list/cartera-list.component').then(m => m.CarteraListComponent)
             }
         ]
     },

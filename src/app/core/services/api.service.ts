@@ -16,8 +16,10 @@ export class ApiService {
     }
 
     // Apartments
-    getApartments(): Observable<any[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/apartments`);
+    getApartments(page: number = 1, search: string = '', perPage: number = 5): Observable<any> {
+        let params: any = { page, per_page: perPage };
+        if (search) params.search = search;
+        return this.http.get<any>(`${this.apiUrl}/apartments`, { params });
     }
 
     createApartment(data: any): Observable<any> {
@@ -33,8 +35,10 @@ export class ApiService {
     }
 
     // Residents
-    getResidents(): Observable<any[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/residents`);
+    getResidents(page: number = 1, search: string = '', perPage: number = 5): Observable<any> {
+        let params: any = { page, per_page: perPage };
+        if (search) params.search = search;
+        return this.http.get<any>(`${this.apiUrl}/residents`, { params });
     }
 
     createResident(data: any): Observable<any> {
@@ -50,8 +54,10 @@ export class ApiService {
     }
 
     // Vehicles
-    getVehicles(): Observable<any[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/vehicles`);
+    getVehicles(page: number = 1, search: string = '', perPage: number = 5): Observable<any> {
+        let params: any = { page, per_page: perPage };
+        if (search) params.search = search;
+        return this.http.get<any>(`${this.apiUrl}/vehicles`, { params });
     }
 
     createVehicle(data: any): Observable<any> {
@@ -64,6 +70,23 @@ export class ApiService {
 
     deleteVehicle(id: number): Observable<any> {
         return this.http.delete<any>(`${this.apiUrl}/vehicles/${id}`);
+    }
+
+    // Admin Payments (Portfolio)
+    getAdminPayments(page: number = 1, perPage: number = 10): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/admin-payments`, { params: { page, per_page: perPage } });
+    }
+
+    createAdminPayment(data: any): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/admin-payments`, data);
+    }
+
+    updateAdminPayment(id: number, data: any): Observable<any> {
+        return this.http.put<any>(`${this.apiUrl}/admin-payments/${id}`, data);
+    }
+
+    deleteAdminPayment(id: number): Observable<any> {
+        return this.http.delete<any>(`${this.apiUrl}/admin-payments/${id}`);
     }
 
 
@@ -85,15 +108,15 @@ export class ApiService {
         return this.http.post<any>(`${this.apiUrl}/parking/settings`, settings);
     }
 
-    getParkingHistory(): Observable<any> {
-        return this.http.get<any>(`${this.apiUrl}/parking/history`);
+    getParkingHistory(page: number = 1, perPage: number = 20): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/parking/history`, { params: { page, per_page: perPage } });
     }
 
     // People & Visits
-    getPeople(search?: string): Observable<any> {
-        let url = `${this.apiUrl}/people`;
-        if (search) url += `?search=${search}`;
-        return this.http.get<any>(url);
+    getPeople(page: number = 1, search: string = '', perPage: number = 5): Observable<any> {
+        let params: any = { page, per_page: perPage };
+        if (search) params.search = search;
+        return this.http.get<any>(`${this.apiUrl}/people`, { params });
     }
 
     getPersonByDocument(document: string): Observable<any> {
@@ -112,8 +135,10 @@ export class ApiService {
         return this.http.delete<any>(`${this.apiUrl}/people/${id}`);
     }
 
-    getVisits(): Observable<any[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/visits`);
+    getVisits(page: number = 1, search: string = '', perPage: number = 5): Observable<any> {
+        let params: any = { page, per_page: perPage };
+        if (search) params.search = search;
+        return this.http.get<any>(`${this.apiUrl}/visits`, { params });
     }
 
     createVisit(data: any): Observable<any> {

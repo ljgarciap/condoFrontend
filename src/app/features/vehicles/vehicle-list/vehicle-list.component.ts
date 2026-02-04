@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-vehicle-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   template: `
     <div class="container mx-auto">
       <div class="flex justify-between items-center mb-4">
@@ -16,10 +17,16 @@ import { AuthService } from '../../../core/services/auth.service';
              <div class="relative">
                  <input 
                     type="text" 
-                    [(ngModel)]="searchTerm"
+                    [(ngModel)]="searchQuery"
+                    (keyup.enter)="onSearch()"
                     placeholder="Buscar..." 
                     class="border rounded py-2 px-4 shadow focus:outline-none focus:shadow-outline"
                  >
+                 <button (click)="onSearch()" class="absolute right-2 top-2 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                    </svg>
+                 </button>
             </div>
             <button *ngIf="authService.isAdmin()" (click)="openModal()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 + Crear
@@ -33,19 +40,33 @@ import { AuthService } from '../../../core/services/auth.service';
             <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
               <th class="py-3 px-6 text-left">Placa</th>
               <th class="py-3 px-6 text-left">Tipo</th>
-              <th class="py-3 px-6 text-left">Apartamento</th>
+               <th class="py-3 px-6 text-left">Apartamento</th>
+              <th class="py-3 px-6 text-center">Cartera</th>
               <th class="py-3 px-6 text-left">Descripción</th>
                <th class="py-3 px-6 text-center" *ngIf="authService.isAdmin()">Acciones</th>
             </tr>
           </thead>
           <tbody class="text-gray-600 text-sm font-light">
-            <tr *ngFor="let vehicle of filteredVehicles()" class="border-b border-gray-200 hover:bg-gray-100">
+            <tr *ngFor="let vehicle of vehicles()" class="border-b border-gray-200 hover:bg-gray-100">
               <td class="py-3 px-6 text-left font-bold">{{ vehicle.plate }}</td>
               <td class="py-3 px-6 text-left capitalize">
                 {{ vehicle.type === 'car' ? 'Carro' : (vehicle.type === 'motorcycle' ? 'Moto' : vehicle.type) }}
               </td>
-              <td class="py-3 px-6 text-left">
-                {{ vehicle.apartment?.block }}{{ vehicle.apartment?.number }}
+               <td class="py-3 px-6 text-left whitespace-nowrap">
+                <span class="font-bold">{{ vehicle.apartment?.block }}{{ vehicle.apartment?.number }}</span>
+              </td>
+              <td class="py-3 px-6 text-center">
+                <span *ngIf="vehicle.apartment?.debt_status?.is_up_to_date" 
+                      class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full border border-green-400">
+                  Al día
+                </span>
+                <span *ngIf="!vehicle.apartment?.debt_status?.is_up_to_date" 
+                      class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full border border-red-400 flex flex-col items-center">
+                  <span>Deuda</span>
+                  <span class="text-[10px] leading-tight text-red-600 font-bold" *ngIf="vehicle.apartment?.debt_status?.overdue_amount > 0">
+                    MORA: $ {{ vehicle.apartment?.debt_status?.overdue_amount | number }}
+                  </span>
+                </span>
               </td>
               <td class="py-3 px-6 text-left">{{ vehicle.description || '-' }}</td>
               <td class="py-3 px-6 text-center" *ngIf="authService.isAdmin()">
@@ -61,12 +82,23 @@ import { AuthService } from '../../../core/services/auth.service';
                 </button>
               </td>
             </tr>
-             <tr *ngIf="filteredVehicles().length === 0">
+             <tr *ngIf="vehicles().length === 0">
               <td colspan="5" class="py-4 text-center">No se encontraron vehículos.</td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      <app-pagination 
+        [currentPage]="paginationData.current_page"
+        [lastPage]="paginationData.last_page"
+        [total]="paginationData.total"
+        [from]="paginationData.from"
+        [to]="paginationData.to"
+        [perPage]="perPage"
+        (pageChange)="onPageChange($event)"
+        (perPageChange)="onPerPageChange($event)"
+      ></app-pagination>
 
        <!-- Modal -->
       <div *ngIf="isModalOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
@@ -115,7 +147,9 @@ export class VehicleListComponent implements OnInit {
   apiService = inject(ApiService);
   vehicles = signal<any[]>([]);
   apartments: any[] = [];
-  searchTerm = signal('');
+  searchQuery = '';
+  perPage = 5;
+  paginationData: any = { current_page: 1, last_page: 1, total: 0, from: 0, to: 0 };
 
   // Modal State
   isModalOpen = false;
@@ -123,41 +157,40 @@ export class VehicleListComponent implements OnInit {
   currentVehicle: any = {};
   errorMessage = '';
 
-  filteredVehicles = computed(() => {
-    const term = this.searchTerm().toLowerCase();
-    return this.vehicles()
-      .filter(v => {
-        const fullApt = (v.apartment?.block || '') + (v.apartment?.number || '');
-        return v.plate.toLowerCase().includes(term) ||
-          v.type.toLowerCase().includes(term) ||
-          (v.apartment?.block || '').toLowerCase().includes(term) ||
-          (v.apartment?.number || '').toLowerCase().includes(term) ||
-          fullApt.toLowerCase().includes(term)
-      })
-      .sort((a, b) => {
-        const aptA = a.apartment;
-        const aptB = b.apartment;
-        if (!aptA || !aptB) return 0;
-        if (aptA.block !== aptB.block) return Number(aptA.block) - Number(aptB.block);
-        if (aptA.floor !== aptB.floor) return Number(aptA.floor) - Number(aptB.floor);
-        return Number(aptA.number) - Number(aptB.number);
-      });
-  });
-
   ngOnInit() {
     this.loadVehicles();
     this.loadApartments();
   }
 
-  loadVehicles() {
-    this.apiService.getVehicles().subscribe(data => {
-      this.vehicles.set(data);
+  loadVehicles(page: number = 1) {
+    this.apiService.getVehicles(page, this.searchQuery, this.perPage).subscribe(response => {
+      this.vehicles.set(response.data);
+      this.paginationData = {
+        current_page: response.current_page,
+        last_page: response.last_page,
+        total: response.total,
+        from: response.from,
+        to: response.to
+      };
     });
   }
 
+  onPageChange(page: number) {
+    this.loadVehicles(page);
+  }
+
+  onSearch() {
+    this.loadVehicles(1);
+  }
+
+  onPerPageChange(perPage: number) {
+    this.perPage = perPage;
+    this.loadVehicles(1);
+  }
+
   loadApartments() {
-    this.apiService.getApartments().subscribe(data => {
-      this.apartments = data;
+    this.apiService.getApartments(1, '').subscribe(response => {
+      this.apartments = response.data || response;
     });
   }
 

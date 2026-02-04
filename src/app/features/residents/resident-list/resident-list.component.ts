@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-resident-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   template: `
     <div class="container mx-auto">
       <div class="flex justify-between items-center mb-4">
@@ -16,10 +17,16 @@ import { AuthService } from '../../../core/services/auth.service';
             <div class="relative">
                 <input 
                     type="text" 
-                    [(ngModel)]="searchTerm"
+                    [(ngModel)]="searchQuery"
+                    (keyup.enter)="onSearch()"
                     placeholder="Buscar..." 
                     class="border rounded py-2 px-4 shadow focus:outline-none focus:shadow-outline"
                 >
+                <button (click)="onSearch()" class="absolute right-2 top-2 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                    </svg>
+                </button>
             </div>
             <button *ngIf="authService.isAdmin()" (click)="openModal()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 + Crear
@@ -40,7 +47,7 @@ import { AuthService } from '../../../core/services/auth.service';
             </tr>
           </thead>
           <tbody class="text-gray-600 text-sm font-light">
-            <tr *ngFor="let resident of filteredResidents()" class="border-b border-gray-200 hover:bg-gray-100">
+            <tr *ngFor="let resident of residents()" class="border-b border-gray-200 hover:bg-gray-100">
               <td class="py-3 px-6 text-left">
                 <div class="font-bold text-gray-900">{{ resident.person?.name }}</div>
                 <div class="text-xs text-gray-400">{{ resident.person?.document_type }} {{ resident.person?.document }}</div>
@@ -64,12 +71,23 @@ import { AuthService } from '../../../core/services/auth.service';
                 </button>
               </td>
             </tr>
-             <tr *ngIf="filteredResidents().length === 0">
+             <tr *ngIf="residents().length === 0">
               <td colspan="6" class="py-4 text-center">No se encontraron residentes.</td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      <app-pagination 
+        [currentPage]="paginationData.current_page"
+        [lastPage]="paginationData.last_page"
+        [total]="paginationData.total"
+        [from]="paginationData.from"
+        [to]="paginationData.to"
+        [perPage]="perPage"
+        (pageChange)="onPageChange($event)"
+        (perPageChange)="onPerPageChange($event)"
+      ></app-pagination>
 
        <!-- Modal -->
       <div *ngIf="isModalOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center py-10">
@@ -134,53 +152,49 @@ export class ResidentListComponent implements OnInit {
   apiService = inject(ApiService);
   residents = signal<any[]>([]);
   apartments: any[] = [];
-  searchTerm = signal('');
+  searchQuery = '';
+  perPage = 5;
+  paginationData: any = { current_page: 1, last_page: 1, total: 0, from: 0, to: 0 };
 
   // Modal State
   isModalOpen = false;
   isEditing = false;
   currentResident: any = {};
 
-  filteredResidents = computed(() => {
-    const term = this.searchTerm().toLowerCase();
-    return this.residents()
-      .filter(res => {
-        const fullApt = (res.apartment?.block || '') + (res.apartment?.number || '');
-        const personName = res.person?.name || '';
-        const personDoc = res.person?.document || '';
-        const personEmail = res.person?.email || '';
-
-        return personName.toLowerCase().includes(term) ||
-          personDoc.toLowerCase().includes(term) ||
-          personEmail.toLowerCase().includes(term) ||
-          (res.apartment?.block || '').toLowerCase().includes(term) ||
-          (res.apartment?.number || '').toLowerCase().includes(term) ||
-          fullApt.toLowerCase().includes(term);
-      })
-      .sort((a, b) => {
-        const aptA = a.apartment;
-        const aptB = b.apartment;
-        if (!aptA || !aptB) return 0;
-        if (aptA.block !== aptB.block) return Number(aptA.block) - Number(aptB.block);
-        if (aptA.floor !== aptB.floor) return Number(aptA.floor) - Number(aptB.floor);
-        return Number(aptA.number) - Number(aptB.number);
-      });
-  });
-
   ngOnInit() {
     this.loadResidents();
     this.loadApartments();
   }
 
-  loadResidents() {
-    this.apiService.getResidents().subscribe(data => {
-      this.residents.set(data);
+  loadResidents(page: number = 1) {
+    this.apiService.getResidents(page, this.searchQuery, this.perPage).subscribe(response => {
+      this.residents.set(response.data);
+      this.paginationData = {
+        current_page: response.current_page,
+        last_page: response.last_page,
+        total: response.total,
+        from: response.from,
+        to: response.to
+      };
     });
   }
 
+  onPageChange(page: number) {
+    this.loadResidents(page);
+  }
+
+  onSearch() {
+    this.loadResidents(1);
+  }
+
+  onPerPageChange(perPage: number) {
+    this.perPage = perPage;
+    this.loadResidents(1);
+  }
+
   loadApartments() {
-    this.apiService.getApartments().subscribe(data => {
-      this.apartments = data;
+    this.apiService.getApartments(1, '').subscribe(response => {
+      this.apartments = response.data || response;
     });
   }
 
