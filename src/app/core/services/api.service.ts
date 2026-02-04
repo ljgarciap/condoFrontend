@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
     providedIn: 'root'
 })
 export class ApiService {
-    private apiUrl = 'http://localhost:8000/api';
+    private apiUrl = '/api';
 
     constructor(private http: HttpClient) { }
 
@@ -28,12 +28,20 @@ export class ApiService {
         return this.http.post<any>(`${this.apiUrl}/notifications`, data);
     }
 
+    sendNotificationWithFile(formData: FormData): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/notifications`, formData);
+    }
+
     markNotificationRead(id: number): Observable<any> {
         return this.http.post<any>(`${this.apiUrl}/notifications/${id}/read`, {});
     }
 
     acceptPolicies(): Observable<any> {
         return this.http.post<any>(`${this.apiUrl}/policies/accept`, {});
+    }
+
+    uploadChunk(data: any): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/chunks/upload`, data);
     }
 
     // Vigilantes

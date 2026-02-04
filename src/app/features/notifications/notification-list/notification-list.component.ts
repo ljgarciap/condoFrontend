@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
@@ -37,6 +37,14 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
                         <span *ngIf="!note.read_at" class="flex h-2 w-2 rounded-full bg-indigo-600 animate-pulse"></span>
                     </div>
                     <p class="text-gray-600 text-sm mb-3">{{ note.message }}</p>
+                    <div *ngIf="note.attachment" class="mb-3">
+                        <button (click)="downloadAttachment(note)" class="inline-flex items-center gap-2 text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-2 rounded-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
+                            </svg>
+                            Ver adjunto
+                        </button>
+                    </div>
                     <div class="flex items-center gap-4 text-[10px] text-gray-400 font-medium">
                         <span class="flex items-center gap-1">
                             De: {{ note.sender?.person?.name || 'Sistema' }}
@@ -94,6 +102,12 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
                     <textarea [(ngModel)]="currentNote.message" name="message" rows="4" placeholder="Describa su solicitud..." class="w-full bg-gray-50 border-2 border-gray-100 rounded-xl py-3 px-4 focus:bg-white focus:border-indigo-500 transition-all outline-none resize-none" required></textarea>
                 </div>
 
+                <div>
+                    <label class="block text-xs font-black uppercase text-gray-400 mb-1 ml-1">Adjunto (Opcional)</label>
+                    <input type="file" (change)="onFileSelected($event)" accept="image/*,.pdf" class="w-full bg-gray-50 border-2 border-gray-100 rounded-xl py-3 px-4 focus:bg-white focus:border-indigo-500 transition-all outline-none text-sm">
+                    <p class="text-xs text-gray-400 mt-1 ml-1">Imágenes o PDF, máx. 10MB</p>
+                </div>
+
                 <div class="flex gap-2">
                     <button type="button" (click)="closeModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-4 rounded-xl transition-all">Cancelar</button>
                     <button type="submit" class="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-200 transition-all">Enviar Notificación</button>
@@ -108,11 +122,13 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 export class NotificationListComponent implements OnInit {
     apiService = inject(ApiService);
     authService = inject(AuthService);
+    @Output() notificationRead = new EventEmitter<void>();
 
     notifications = signal<any[]>([]);
     users = signal<any[]>([]);
     isModalOpen = false;
     currentNote: any = { receiver_id: null, title: '', message: '', type: 'info' };
+    selectedFile: File | null = null;
 
     ngOnInit() {
         this.loadNotifications();
@@ -148,15 +164,111 @@ export class NotificationListComponent implements OnInit {
     }
 
     sendNotification() {
-        this.apiService.sendNotification(this.currentNote).subscribe(() => {
-            this.loadNotifications();
-            this.closeModal();
-        });
+        if (this.selectedFile) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const base64 = (reader.result as string).split(',')[1];
+                const filename = this.selectedFile!.name;
+
+                // If larger than 1MB, use chunked upload
+                if (this.selectedFile!.size > 1 * 1024 * 1024) {
+                    this.uploadInChunks(base64, filename);
+                } else {
+                    const notificationData = {
+                        ...this.currentNote,
+                        attachment: base64,
+                        attachment_name: filename
+                    };
+                    this.apiService.sendNotification(notificationData).subscribe(() => {
+                        this.loadNotifications();
+                        this.closeModal();
+                    });
+                }
+            };
+            reader.readAsDataURL(this.selectedFile);
+        } else {
+            this.apiService.sendNotification(this.currentNote).subscribe(() => {
+                this.loadNotifications();
+                this.closeModal();
+            });
+        }
+    }
+
+    async uploadInChunks(base64: string, filename: string) {
+        const chunkSize = 1 * 1024 * 1024; // 1MB chunks (well within 2MB limit)
+        const totalChunks = Math.ceil(base64.length / chunkSize);
+        const identifier = Math.random().toString(36).substring(2, 10) + Date.now();
+
+        for (let i = 0; i < totalChunks; i++) {
+            const chunk = base64.substring(i * chunkSize, (i + 1) * chunkSize);
+            const payload = {
+                base64_chunk: chunk,
+                chunk_index: i,
+                total_chunks: totalChunks,
+                identifier: identifier,
+                filename: filename
+            };
+
+            try {
+                // Simple use of lastValueFrom might be needed if toPromise() is deprecated
+                const response = await this.apiService.uploadChunk(payload).toPromise();
+
+                if (response.status === 'completed') {
+                    const notificationData = {
+                        ...this.currentNote,
+                        attachment_path: response.path,
+                        attachment_name: filename
+                    };
+                    this.apiService.sendNotification(notificationData).subscribe(() => {
+                        this.loadNotifications();
+                        this.closeModal();
+                    });
+                }
+            } catch (error) {
+                console.error('Error uploading chunk', i, error);
+                alert('Error al subir el archivo adjunto.');
+                break;
+            }
+        }
+    }
+
+    onFileSelected(event: any) {
+        const file = event.target.files[0];
+        if (file) {
+            // Validate file size (10MB max)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('El archivo es demasiado grande. Máximo 10MB.');
+                event.target.value = '';
+                return;
+            }
+            this.selectedFile = file;
+        }
+    }
+
+    downloadAttachment(note: any) {
+        try {
+            const attachmentData = JSON.parse(note.attachment);
+            const link = document.createElement('a');
+
+            if (attachmentData.data) {
+                // Direct Base64
+                link.href = 'data:application/octet-stream;base64,' + attachmentData.data;
+            } else if (attachmentData.path) {
+                // Stored file path (via proxy)
+                link.href = '/storage/' + attachmentData.path;
+            }
+
+            link.download = attachmentData.name;
+            link.click();
+        } catch (e) {
+            console.error('Error downloading attachment:', e);
+        }
     }
 
     markAsRead(id: number) {
         this.apiService.markNotificationRead(id).subscribe(() => {
             this.loadNotifications();
+            this.notificationRead.emit();
         });
     }
 }

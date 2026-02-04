@@ -50,7 +50,11 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
             <tr *ngFor="let resident of residents()" class="border-b border-gray-200 hover:bg-gray-100">
               <td class="py-3 px-6 text-left">
                 <div class="font-bold text-gray-900">{{ resident.person?.name }}</div>
-                <div class="text-xs text-gray-400">{{ resident.person?.document_type }} {{ resident.person?.document }}</div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-400">{{ resident.person?.document_type }} {{ resident.person?.document }}</span>
+                    <span *ngIf="resident.person?.user" class="text-[8px] font-black uppercase px-1.5 py-0.5 bg-green-100 text-green-700 rounded border border-green-200">Con Acceso</span>
+                    <span *ngIf="!resident.person?.user" class="text-[8px] font-black uppercase px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded border border-gray-200">Sin Acceso</span>
+                </div>
               </td>
               <td class="py-3 px-6 text-left">{{ resident.person?.email || '-' }}</td>
               <td class="py-3 px-6 text-left">{{ resident.person?.phone || '-' }}</td>
@@ -93,6 +97,11 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
       <div *ngIf="isModalOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center py-10">
         <div class="relative p-5 border w-96 shadow-lg rounded-md bg-white">
             <h3 class="text-lg font-bold mb-4">{{ isEditing ? 'Editar' : 'Crear' }} Residente</h3>
+            
+            <div *ngIf="errorMessage()" class="mb-4 p-3 bg-red-100 border border-red-200 text-red-700 text-xs font-bold rounded animate-in fade-in zoom-in">
+                {{ errorMessage() }}
+            </div>
+
             <form (ngSubmit)="saveResident()">
                 <div class="flex gap-2 mb-4">
                     <div class="w-1/3">
@@ -136,15 +145,15 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
                     <input [(ngModel)]="currentResident.phone" name="phone" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
 
-                <div *ngIf="!isEditing" class="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                 <div *ngIf="!hasAccess" class="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" [(ngModel)]="currentResident.create_user" name="create_user" class="w-4 h-4 text-blue-600">
-                        <span class="text-sm font-bold text-blue-800">Crear usuario de acceso</span>
+                        <span class="text-sm font-bold text-blue-800">¿Habilitar acceso a plataforma?</span>
                     </label>
                     <div *ngIf="currentResident.create_user" class="mt-3 animate-in fade-in slide-in-from-top-1">
-                        <label class="block text-gray-700 text-xs font-bold mb-1">Contraseña Temporal</label>
+                        <label class="block text-gray-700 text-xs font-bold mb-1">Contraseña de Acceso</label>
                         <input [(ngModel)]="currentResident.password" name="password" type="password" placeholder="Mínimo 6 caracteres" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" [required]="currentResident.create_user">
-                        <p class="text-[10px] text-blue-500 mt-1 italic">El correo registrado será su nombre de usuario.</p>
+                        <p class="text-[10px] text-blue-500 mt-1 italic">El correo registrado será usado para el ingreso.</p>
                     </div>
                 </div>
 
@@ -171,6 +180,8 @@ export class ResidentListComponent implements OnInit {
   // Modal State
   isModalOpen = false;
   isEditing = false;
+  hasAccess = false;
+  errorMessage = signal<string>('');
   currentResident: any = {};
 
   ngOnInit() {
@@ -213,6 +224,7 @@ export class ResidentListComponent implements OnInit {
   openModal(resident: any = null) {
     if (resident) {
       this.isEditing = true;
+      this.hasAccess = !!resident.person?.user;
       this.currentResident = {
         ...resident,
         name: resident.person?.name,
@@ -220,10 +232,13 @@ export class ResidentListComponent implements OnInit {
         document_type: resident.person?.document_type,
         email: resident.person?.email,
         phone: resident.person?.phone,
-        apartment_id: resident.apartment?.id
+        apartment_id: resident.apartment?.id,
+        create_user: false,
+        password: ''
       };
     } else {
       this.isEditing = false;
+      this.hasAccess = false;
       this.currentResident = {
         name: '',
         document: '',
@@ -262,16 +277,37 @@ export class ResidentListComponent implements OnInit {
   }
 
   saveResident() {
+    this.errorMessage.set('');
     if (this.isEditing) {
-      this.apiService.updateResident(this.currentResident.id, this.currentResident).subscribe(() => {
-        this.loadResidents();
-        this.closeModal();
+      this.apiService.updateResident(this.currentResident.id, this.currentResident).subscribe({
+        next: () => {
+          this.loadResidents();
+          this.closeModal();
+        },
+        error: (err) => {
+          this.handleError(err);
+        }
       });
     } else {
-      this.apiService.createResident(this.currentResident).subscribe(() => {
-        this.loadResidents();
-        this.closeModal();
+      this.apiService.createResident(this.currentResident).subscribe({
+        next: () => {
+          this.loadResidents();
+          this.closeModal();
+        },
+        error: (err) => {
+          this.handleError(err);
+        }
       });
+    }
+  }
+
+  private handleError(err: any) {
+    console.error(err);
+    if (err.error?.errors) {
+      const firstError = Object.values(err.error.errors)[0] as string[];
+      this.errorMessage.set(firstError[0]);
+    } else {
+      this.errorMessage.set(err.error?.message || 'Error al guardar residente. Por favor verifique los datos.');
     }
   }
 

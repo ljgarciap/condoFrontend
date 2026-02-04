@@ -62,7 +62,8 @@
               "buildTarget": "ciudadela-client:build:production"
             },
             "development": {
-              "buildTarget": "ciudadela-client:build:development"
+              "buildTarget": "ciudadela-client:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

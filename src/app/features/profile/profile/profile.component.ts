@@ -2,11 +2,12 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { RoleTranslatePipe } from '../../../shared/pipes/role-translate.pipe';
 
 @Component({
     selector: 'app-profile',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, RoleTranslatePipe],
     template: `
     <div class="container mx-auto max-w-4xl">
       <div class="mb-8">
@@ -22,7 +23,7 @@ import { AuthService } from '../../../core/services/auth.service';
                     {{ (user()?.person?.name || 'U')[0] }}
                 </div>
                 <h3 class="text-xl font-bold text-gray-900">{{ user()?.person?.name }}</h3>
-                <p class="text-xs font-black uppercase tracking-widest text-indigo-500 mt-1">{{ user()?.role?.name }}</p>
+                <p class="text-xs font-black uppercase tracking-widest text-indigo-500 mt-1">{{ user()?.role?.name | roleTranslate }}</p>
                 
                 <div class="mt-6 pt-6 border-t border-gray-100 w-full text-left space-y-4">
                     <div>

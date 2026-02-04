@@ -3,6 +3,7 @@ import { LoginComponent } from './features/auth/login/login.component';
 import { DashboardComponent } from './features/dashboard/dashboard/dashboard.component';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { adminOrVigilanteGuard } from './core/guards/admin-or-vigilante.guard';
 
 export const routes: Routes = [
     { path: 'login', component: LoginComponent },
@@ -13,10 +14,12 @@ export const routes: Routes = [
         children: [
             {
                 path: '',
+                canActivate: [adminOrVigilanteGuard],
                 loadComponent: () => import('./features/dashboard/summary/summary.component').then(m => m.SummaryComponent)
             },
             {
                 path: 'apartments',
+                canActivate: [adminOrVigilanteGuard],
                 loadComponent: () => import('./features/apartments/apartment-list/apartment-list.component').then(m => m.ApartmentListComponent)
             },
             {
@@ -25,6 +28,7 @@ export const routes: Routes = [
             },
             {
                 path: 'residents',
+                canActivate: [adminOrVigilanteGuard],
                 loadComponent: () => import('./features/residents/resident-list/resident-list.component').then(m => m.ResidentListComponent)
             },
             {

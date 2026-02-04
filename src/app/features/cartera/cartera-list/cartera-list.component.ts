@@ -2,17 +2,18 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
-    selector: 'app-cartera-list',
-    standalone: true,
-    imports: [CommonModule, FormsModule, PaginationComponent],
-    template: `
+  selector: 'app-cartera-list',
+  standalone: true,
+  imports: [CommonModule, FormsModule, PaginationComponent],
+  template: `
     <div class="container mx-auto">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-2xl font-bold">Seguimiento de Cartera (Cartera)</h2>
-        <div class="flex gap-2">
+        <div *ngIf="authService.isAdmin()" class="flex gap-2">
             <button (click)="openChargeModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded shadow">
                 + Registrar Cobro
             </button>
@@ -61,14 +62,15 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
                 </span>
               </td>
               <td class="py-3 px-6 text-center">
-                <button *ngIf="payment.status !== 'paid'" (click)="markAsPaid(payment)" class="text-green-500 hover:text-green-700 font-bold text-xs uppercase underline">
+                <button *ngIf="authService.isAdmin() && payment.status !== 'paid'" (click)="markAsPaid(payment)" class="text-green-500 hover:text-green-700 font-bold text-xs uppercase underline">
                   Marcar Pago
                 </button>
-                <button (click)="deletePayment(payment.id)" class="text-red-500 hover:text-red-700 ml-2">
+                <button *ngIf="authService.isAdmin()" (click)="deletePayment(payment.id)" class="text-red-500 hover:text-red-700 ml-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                       <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                     </svg>
                 </button>
+                <span *ngIf="!authService.isAdmin()" class="text-gray-400 text-xs italic">-</span>
               </td>
             </tr>
             <tr *ngIf="payments().length === 0">
@@ -122,80 +124,81 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 
     </div>
   `,
-    styles: []
+  styles: []
 })
 export class CarteraListComponent implements OnInit {
-    apiService = inject(ApiService);
-    payments = signal<any[]>([]);
-    apartments: any[] = [];
-    perPage = 10;
-    paginationData: any = { current_page: 1, last_page: 1, total: 0, from: 0, to: 0 };
+  apiService = inject(ApiService);
+  authService = inject(AuthService);
+  payments = signal<any[]>([]);
+  apartments: any[] = [];
+  perPage = 10;
+  paginationData: any = { current_page: 1, last_page: 1, total: 0, from: 0, to: 0 };
 
-    isChargeModalOpen = false;
-    activeRecord: any = { apartment_id: '', amount: 0, due_date: '', description: '', status: 'pending' };
+  isChargeModalOpen = false;
+  activeRecord: any = { apartment_id: '', amount: 0, due_date: '', description: '', status: 'pending' };
 
-    ngOnInit() {
-        this.loadPayments();
-        this.apiService.getApartments(1, '', 500).subscribe(response => this.apartments = response.data || response);
-    }
+  ngOnInit() {
+    this.loadPayments();
+    this.apiService.getApartments(1, '', 500).subscribe(response => this.apartments = response.data || response);
+  }
 
-    loadPayments(page: number = 1) {
-        this.apiService.getAdminPayments(page, this.perPage).subscribe(response => {
-            this.payments.set(response.data);
-            this.paginationData = {
-                current_page: response.current_page,
-                last_page: response.last_page,
-                total: response.total,
-                from: response.from,
-                to: response.to
-            };
-        });
-    }
+  loadPayments(page: number = 1) {
+    this.apiService.getAdminPayments(page, this.perPage).subscribe(response => {
+      this.payments.set(response.data);
+      this.paginationData = {
+        current_page: response.current_page,
+        last_page: response.last_page,
+        total: response.total,
+        from: response.from,
+        to: response.to
+      };
+    });
+  }
 
-    onPageChange(page: number) {
-        this.loadPayments(page);
-    }
+  onPageChange(page: number) {
+    this.loadPayments(page);
+  }
 
-    onPerPageChange(perPage: number) {
-        this.perPage = perPage;
-        this.loadPayments(1);
-    }
+  onPerPageChange(perPage: number) {
+    this.perPage = perPage;
+    this.loadPayments(1);
+  }
 
-    openChargeModal() {
-        this.activeRecord = { apartment_id: '', amount: 0, due_date: '', description: '', status: 'pending' };
-        this.isChargeModalOpen = true;
-    }
+  openChargeModal() {
+    this.activeRecord = { apartment_id: '', amount: 0, due_date: '', description: '', status: 'pending' };
+    this.isChargeModalOpen = true;
+  }
 
-    openPaymentModal() {
-        // For now we use the same as "Marcar Pago" on existing list or a quick register
-        // But let's simplify: user can register a charge and then mark it as paid.
-        this.openChargeModal();
-    }
+  openPaymentModal() {
+    // For now we use the same as "Marcar Pago" on existing list or a quick register
+    // But let's simplify: user can register a charge and then mark it as paid.
+    this.openChargeModal();
+  }
 
-    closeModals() {
-        this.isChargeModalOpen = false;
-    }
+  closeModals() {
+    this.isChargeModalOpen = false;
+  }
 
-    saveCharge() {
-        this.apiService.createAdminPayment(this.activeRecord).subscribe(() => {
-            this.loadPayments();
-            this.closeModals();
-        });
-    }
+  saveCharge() {
+    this.apiService.createAdminPayment(this.activeRecord).subscribe(() => {
+      this.loadPayments();
+      this.closeModals();
+    });
+  }
 
-    markAsPaid(payment: any) {
-        if (!confirm('¿Marcar este registro como PAGADO hoy?')) return;
+  markAsPaid(payment: any) {
+    if (!confirm('¿Marcar este registro como PAGADO hoy?')) return;
 
-        this.apiService.updateAdminPayment(payment.id, {
-            status: 'paid',
-            paid_date: new Date().toISOString().split('T')[0]
-        }).subscribe(() => {
-            this.loadPayments();
-        });
-    }
+    this.apiService.updateAdminPayment(payment.id, {
+      status: 'paid',
+      paid_date: new Date().toISOString().split('T')[0]
+    }).subscribe(() => {
+      this.loadPayments();
+    });
+  }
 
-    deletePayment(id: number) {
-        if (!confirm('¿Eliminar este registro de cartera?')) return;
-        this.apiService.deleteAdminPayment(id).subscribe(() => this.loadPayments());
-    }
+  deletePayment(id: number) {
+    if (!confirm('¿Eliminar este registro de cartera?')) return;
+    this.apiService.deleteAdminPayment(id).subscribe(() => this.loadPayments());
+  }
 }
