@@ -10,12 +10,12 @@ import { AuthService } from '../../../core/services/auth.service';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="container mx-auto">
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h2 class="text-3xl font-extrabold text-gray-800">Maestro de Vigilantes</h2>
           <p class="text-gray-500">Gestión de personal de seguridad y sus accesos</p>
         </div>
-        <button (click)="openModal()" class="bg-gray-800 hover:bg-black text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors flex items-center gap-2">
+        <button (click)="openModal()" class="w-full sm:w-auto bg-gray-800 hover:bg-black text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
@@ -23,7 +23,7 @@ import { AuthService } from '../../../core/services/auth.service';
         </button>
       </div>
 
-      <div class="bg-white shadow-xl rounded-xl overflow-hidden border border-gray-100">
+      <div class="bg-white shadow-xl rounded-xl overflow-hidden overflow-x-auto border border-gray-100">
         <table class="min-w-full table-auto">
           <thead class="bg-gray-50 border-b border-gray-200">
             <tr class="text-gray-500 uppercase text-xs font-bold tracking-wider">

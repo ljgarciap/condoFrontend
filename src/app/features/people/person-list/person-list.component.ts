@@ -11,19 +11,19 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
     imports: [CommonModule, FormsModule, PaginationComponent],
     template: `
     <div class="container mx-auto">
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h2 class="text-3xl font-extrabold text-gray-800">Maestro de Personas</h2>
-          <p class="text-gray-500">Gestión centralizada de identidades (Residentes, Usuarios y Visitantes)</p>
+          <p class="text-gray-500">Gestión centralizada de identidades</p>
         </div>
-        <div class="flex gap-4">
-            <div class="relative">
+        <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <div class="relative w-full sm:w-auto">
                 <input 
                     type="text" 
                     [(ngModel)]="searchQuery"
                     (keyup.enter)="onSearch()"
                     placeholder="Buscar por nombre o doc..." 
-                    class="border-2 border-gray-300 rounded-lg py-2 px-4 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 w-64 transition-all"
+                    class="border-2 border-gray-300 rounded-lg py-2 px-4 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 w-full sm:w-64 transition-all"
                 >
                 <button (click)="onSearch()" class="absolute right-2 top-2 text-gray-400 hover:text-blue-500">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
@@ -31,7 +31,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
                     </svg>
                 </button>
             </div>
-            <button *ngIf="authService.isAdmin()" (click)="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors flex items-center gap-2">
+            <button *ngIf="authService.isAdmin()" (click)="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -40,7 +40,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
         </div>
       </div>
       
-      <div class="bg-white shadow-xl rounded-xl overflow-hidden border border-gray-100">
+      <div class="bg-white shadow-xl rounded-xl overflow-hidden overflow-x-auto border border-gray-100">
         <table class="min-w-full table-auto">
           <thead class="bg-gray-50 border-b border-gray-200">
             <tr class="text-gray-500 uppercase text-xs font-bold tracking-wider">

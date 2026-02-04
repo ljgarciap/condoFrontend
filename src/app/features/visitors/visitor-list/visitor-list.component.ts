@@ -10,14 +10,20 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
   imports: [CommonModule, FormsModule, PaginationComponent],
   template: `
     <div class="container mx-auto">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold">Registro de Visitantes</h2>
-        <button (click)="openModal()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            + Nuevo Ingreso
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h2 class="text-3xl font-extrabold text-gray-800">Registro de Visitantes</h2>
+            <p class="text-gray-500">Control de ingresos y salidas</p>
+        </div>
+        <button (click)="openModal()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Nuevo Ingreso
         </button>
       </div>
 
-      <div class="bg-white shadow-md rounded my-6 overflow-x-auto">
+      <div class="bg-white shadow-xl rounded-xl overflow-hidden overflow-x-auto border border-gray-100 my-6">
         <table class="min-w-full table-auto">
           <thead>
             <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">

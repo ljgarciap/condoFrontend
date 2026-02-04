@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -10,13 +10,16 @@ import { PolicyModalComponent } from '../../../shared/components/policy-modal/po
   standalone: true,
   imports: [CommonModule, RouterModule, PolicyModalComponent],
   template: `
-    <div class="flex h-screen bg-gray-100">
+    <div class="flex h-screen bg-gray-100 overflow-hidden">
+      <!-- Mobile Sidebar Overlay -->
+      <div *ngIf="isSidebarOpen" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-20 md:hidden" (click)="toggleSidebar()"></div>
+
       <!-- Sidebar -->
-      <div class="w-64 bg-gray-800 text-white flex flex-col">
-        <div class="h-16 flex items-center justify-center bg-gray-900 shadow-md z-10">
+      <div [class]="'fixed inset-y-0 left-0 bg-gray-800 text-white flex flex-col transition-transform duration-300 transform z-30 md:translate-x-0 md:static md:inset-auto w-64 ' + (isSidebarOpen ? 'translate-x-0' : '-translate-x-full')">
+        <div class="h-16 flex items-center justify-center bg-gray-900 shadow-md">
           <img src="/ciudadela.png" alt="Ciudadela" class="h-12">
         </div>
-        <nav class="flex-1 p-4 space-y-2">
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
           <!-- Admin & Vigilante common links -->
           <ng-container *ngIf="!authService.isResident()">
             <a routerLink="/dashboard" routerLinkActive="bg-gray-700" [routerLinkActiveOptions]="{exact: true}" class="block p-2 rounded hover:bg-gray-700">Resumen</a>
@@ -50,9 +53,16 @@ import { PolicyModalComponent } from '../../../shared/components/policy-modal/po
       </div>
 
       <!-- Main Content -->
-      <div class="flex-1 flex flex-col overflow-hidden">
-        <header class="flex items-center justify-between p-4 bg-white shadow">
-          <h2 class="text-xl font-semibold">Panel de Control</h2>
+      <div class="flex-1 flex flex-col overflow-hidden w-full">
+        <header class="flex items-center justify-between p-4 bg-white shadow z-10">
+          <div class="flex items-center gap-4">
+            <button (click)="toggleSidebar()" class="text-gray-500 focus:outline-none md:hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+            </button>
+            <h2 class="text-xl font-semibold truncate">Panel de Control</h2>
+          </div>
           <div class="flex items-center gap-4">
             <a routerLink="/dashboard/notifications" class="relative text-gray-600 hover:text-gray-800">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
@@ -77,16 +87,29 @@ import { PolicyModalComponent } from '../../../shared/components/policy-modal/po
   `,
   styles: []
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   authService = inject(AuthService);
   apiService = inject(ApiService);
   currentUser = this.authService.currentUser; // Signal
   unreadCount = signal<number>(0);
+  isSidebarOpen = false;
+
+  toggleSidebar() {
+    this.isSidebarOpen = !this.isSidebarOpen;
+  }
+
+  private pollingInterval: any;
 
   ngOnInit() {
     this.loadUnreadCount();
     // Refresh count every 30 seconds to reduce server load
-    setInterval(() => this.loadUnreadCount(), 30000);
+    this.pollingInterval = setInterval(() => this.loadUnreadCount(), 30000);
+  }
+
+  ngOnDestroy() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
   }
 
   loadUnreadCount() {

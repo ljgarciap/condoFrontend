@@ -11,30 +11,36 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
   imports: [CommonModule, FormsModule, PaginationComponent],
   template: `
     <div class="container mx-auto">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold">Apartamentos</h2>
-        <div class="flex gap-4">
-            <div class="relative">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <h2 class="text-3xl font-extrabold text-gray-800">Apartamentos</h2>
+          <p class="text-gray-500">Gestión de unidades residenciales</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <div class="relative w-full sm:w-auto">
                 <input 
                     type="text" 
                     [(ngModel)]="searchQuery"
                     (keyup.enter)="onSearch()"
                     placeholder="Buscar..." 
-                    class="border rounded py-2 px-4 shadow focus:outline-none focus:shadow-outline"
+                    class="border-2 border-gray-300 rounded-lg py-2 px-4 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 w-full sm:w-64 transition-all"
                 >
-                <button (click)="onSearch()" class="absolute right-2 top-2 text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <button (click)="onSearch()" class="absolute right-2 top-2 text-gray-400 hover:text-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                       <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                     </svg>
                 </button>
             </div>
-            <button *ngIf="authService.isAdmin()" (click)="openModal()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                + Crear
+            <button *ngIf="authService.isAdmin()" (click)="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Crear
             </button>
         </div>
       </div>
       
-      <div class="bg-white shadow-md rounded my-6 overflow-x-auto">
+      <div class="bg-white shadow-xl rounded-xl overflow-hidden overflow-x-auto border border-gray-100 my-6">
         <table class="min-w-full table-auto">
           <thead>
             <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">

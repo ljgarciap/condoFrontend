@@ -10,13 +10,13 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
     standalone: true,
     imports: [CommonModule, FormsModule, PaginationComponent],
     template: `
-    <div class="container mx-auto">
-      <div class="flex justify-between items-center mb-6">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h2 class="text-3xl font-extrabold text-gray-800">Centro de Notificaciones</h2>
-          <p class="text-gray-500">Comunicaciones entre administración y residentes</p>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-800">Centro de Notificaciones</h2>
+          <p class="text-sm sm:text-base text-gray-500">Comunicaciones entre administración y residentes</p>
         </div>
-        <button (click)="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors flex items-center gap-2">
+        <button (click)="openModal()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-colors flex items-center justify-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
@@ -24,19 +24,19 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
         </button>
       </div>
 
-      <div class="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6 max-w-md">
-        <button (click)="changeTab('received')" [class]="'w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all ' + (activeTab === 'received' ? 'bg-white shadow text-indigo-700' : 'text-gray-500 hover:text-gray-700')">
+      <div class="flex flex-row space-x-1 rounded-xl bg-gray-100 p-1 mb-6 w-full max-w-full sm:max-w-md mx-auto sm:mx-0">
+        <button (click)="changeTab('received')" [class]="'flex-1 text-center rounded-lg py-2.5 text-sm font-medium leading-5 transition-all ' + (activeTab === 'received' ? 'bg-white shadow text-indigo-700' : 'text-gray-500 hover:text-gray-700')">
             Recibidas
         </button>
-        <button (click)="changeTab('sent')" [class]="'w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-all ' + (activeTab === 'sent' ? 'bg-white shadow text-indigo-700' : 'text-gray-500 hover:text-gray-700')">
+        <button (click)="changeTab('sent')" [class]="'flex-1 text-center rounded-lg py-2.5 text-sm font-medium leading-5 transition-all ' + (activeTab === 'sent' ? 'bg-white shadow text-indigo-700' : 'text-gray-500 hover:text-gray-700')">
             Enviadas
         </button>
       </div>
 
       <div class="grid grid-cols-1 gap-4">
         <div *ngFor="let note of notifications()" 
-             [class]="'p-6 rounded-2xl border-l-4 shadow-sm transition-all ' + (activeTab === 'sent' ? 'bg-white border-gray-200' : (note.read_at ? 'bg-white border-gray-200 grayscale-[0.5]' : 'bg-indigo-50 border-indigo-500 shadow-md transform hover:scale-[1.01]'))">
-            <div class="flex justify-between items-start">
+             [class]="'p-4 sm:p-6 rounded-2xl border-l-4 shadow-sm transition-all ' + (activeTab === 'sent' ? 'bg-white border-gray-200' : (note.read_at ? 'bg-white border-gray-200 grayscale-[0.5]' : 'bg-indigo-50 border-indigo-500 shadow-md transform hover:scale-[1.01]'))">
+            <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div class="flex-1">
                     <div class="flex items-center gap-2 mb-1">
                         <span [class]="'px-2 py-0.5 rounded text-[10px] uppercase font-black ' + (note.type === 'alert' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700')">
@@ -54,11 +54,11 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
                             Ver adjunto
                         </button>
                     </div>
-                    <div class="flex items-center gap-4 text-[10px] text-gray-400 font-medium">
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-gray-400 font-medium">
                         <span class="flex items-center gap-1">
                             De: {{ note.sender?.person?.name || 'Sistema' }}
                         </span>
-                        <span>•</span>
+                        <span class="hidden sm:inline">•</span>
                         <span>{{ note.created_at | date:'medium' }}</span>
                     </div>
                 </div>
@@ -80,8 +80,8 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
       </div>
 
       <!-- Modal -->
-      <div *ngIf="isModalOpen" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8">
+      <div *ngIf="isModalOpen" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+        <div class="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
             <h3 class="text-2xl font-black mb-6 text-gray-800 flex items-center gap-3">
                 <div class="p-2 bg-indigo-100 text-indigo-600 rounded-xl">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
