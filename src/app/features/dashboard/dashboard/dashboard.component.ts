@@ -19,9 +19,12 @@ import { AuthService } from '../../../core/services/auth.service';
         <nav class="flex-1 p-4 space-y-2">
           <a routerLink="/dashboard" routerLinkActive="bg-gray-700" [routerLinkActiveOptions]="{exact: true}" class="block p-2 rounded hover:bg-gray-700">Resumen</a>
           <a routerLink="/dashboard/apartments" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Apartamentos</a>
+          <a routerLink="/dashboard/people" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Personas</a>
           <a routerLink="/dashboard/residents" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Residentes</a>
           <a routerLink="/dashboard/vehicles" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Vehículos</a>
-          <a routerLink="/dashboard/parking" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Control Parqueadero</a>
+          <a routerLink="/dashboard/parking" routerLinkActive="bg-gray-700" [routerLinkActiveOptions]="{exact: true}" class="block p-2 rounded hover:bg-gray-700">Control Parqueadero</a>
+          <a routerLink="/dashboard/parking/history" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Histórico Parqueadero</a>
+          <a routerLink="/dashboard/visitors" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Visitantes</a>
         </nav>
         <div class="p-4 bg-gray-900">
           <button (click)="logout()" class="w-full p-2 text-center bg-red-600 rounded hover:bg-red-700">Cerrar Sesión</button>
@@ -33,7 +36,7 @@ import { AuthService } from '../../../core/services/auth.service';
         <header class="flex items-center justify-between p-4 bg-white shadow">
           <h2 class="text-xl font-semibold">Panel de Control</h2>
           <div class="text-gray-600">
-            Bienvenido, {{ currentUser()?.name || 'Usuario' }}
+            Bienvenido, {{ currentUser()?.person?.name || currentUser()?.name || 'Usuario' }}
           </div>
         </header>
 

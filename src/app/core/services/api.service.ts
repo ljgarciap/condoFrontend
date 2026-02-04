@@ -85,5 +85,42 @@ export class ApiService {
         return this.http.post<any>(`${this.apiUrl}/parking/settings`, settings);
     }
 
+    getParkingHistory(): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/parking/history`);
+    }
 
+    // People & Visits
+    getPeople(search?: string): Observable<any> {
+        let url = `${this.apiUrl}/people`;
+        if (search) url += `?search=${search}`;
+        return this.http.get<any>(url);
+    }
+
+    getPersonByDocument(document: string): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/people/search/${document}`);
+    }
+
+    createPerson(data: any): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/people`, data);
+    }
+
+    updatePerson(id: number, data: any): Observable<any> {
+        return this.http.put<any>(`${this.apiUrl}/people/${id}`, data);
+    }
+
+    deletePerson(id: number): Observable<any> {
+        return this.http.delete<any>(`${this.apiUrl}/people/${id}`);
+    }
+
+    getVisits(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/visits`);
+    }
+
+    createVisit(data: any): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/visits`, data);
+    }
+
+    updateVisit(id: number, data: any): Observable<any> {
+        return this.http.put<any>(`${this.apiUrl}/visits/${id}`, data);
+    }
 }

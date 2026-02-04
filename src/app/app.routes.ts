@@ -16,6 +16,10 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/apartments/apartment-list/apartment-list.component').then(m => m.ApartmentListComponent)
             },
             {
+                path: 'people',
+                loadComponent: () => import('./features/people/person-list/person-list.component').then(m => m.PersonListComponent)
+            },
+            {
                 path: 'residents',
                 loadComponent: () => import('./features/residents/resident-list/resident-list.component').then(m => m.ResidentListComponent)
             },
@@ -26,6 +30,14 @@ export const routes: Routes = [
             {
                 path: 'parking',
                 loadComponent: () => import('./features/parking/parking-control/parking-control.component').then(m => m.ParkingControlComponent)
+            },
+            {
+                path: 'parking/history',
+                loadComponent: () => import('./features/parking/parking-history/parking-history.component').then(m => m.ParkingHistoryComponent)
+            },
+            {
+                path: 'visitors',
+                loadComponent: () => import('./features/visitors/visitor-list/visitor-list.component').then(m => m.VisitorListComponent)
             }
         ]
     },

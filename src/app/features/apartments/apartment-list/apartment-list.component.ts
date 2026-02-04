@@ -45,7 +45,7 @@ import { AuthService } from '../../../core/services/auth.service';
               <td class="py-3 px-6 text-left whitespace-nowrap">{{ apt.block }}</td>
               <td class="py-3 px-6 text-left">{{ apt.floor }}</td>
               <td class="py-3 px-6 text-left">{{ apt.number }}</td>
-              <td class="py-3 px-6 text-left">{{ apt.owner?.name || 'N/A' }}</td>
+              <td class="py-3 px-6 text-left">{{ apt.owner?.person?.name || 'N/A' }}</td>
               <td class="py-3 px-6 text-center">
                 <button (click)="openDetailsModal(apt, 'vehicles')" class="bg-blue-200 text-blue-600 py-1 px-3 rounded-full text-xs hover:bg-blue-300 transition focus:outline-none">
                     {{ apt.vehicles?.length || 0 }}
@@ -96,11 +96,11 @@ import { AuthService } from '../../../core/services/auth.service';
                 <ng-container *ngIf="detailType === 'residents'">
                     <li *ngFor="let resident of currentApartment.residents" class="mb-2">
                         <div class="flex items-center gap-2">
-                            <span class="font-bold">{{ resident.name }}</span>
+                            <span class="font-bold">{{ resident.person?.name }}</span>
                             <span *ngIf="resident.id === currentApartment.owner_id" class="bg-yellow-200 text-yellow-800 text-xs px-2 rounded-full">Propietario</span>
                         </div>
                         <div class="text-sm text-gray-600">
-                             <div>Tel: {{ resident.phone || 'N/A' }}</div>
+                             <div>Tel: {{ resident.person?.phone || 'N/A' }}</div>
                              <div>Edad: {{ calculateAge(resident.birthdate) }} años</div>
                         </div>
                     </li>
@@ -149,8 +149,8 @@ import { AuthService } from '../../../core/services/auth.service';
                             (click)="selectOwner(resident)"
                             class="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
                         >
-                            <div class="font-bold">{{ resident.name }}</div> 
-                            <div class="text-xs text-gray-500">{{ resident.document ? 'Doc: ' + resident.document : '' }} - {{ resident.email }}</div>
+                            <div class="font-bold">{{ resident.person?.name }}</div> 
+                            <div class="text-xs text-gray-500">{{ resident.person?.document ? 'Doc: ' + resident.person?.document : '' }} - {{ resident.person?.email }}</div>
                         </li>
                      </ul>
                       <div *ngIf="selectedOwnerName" class="mt-1 text-sm text-green-600">
@@ -201,7 +201,7 @@ export class ApartmentListComponent implements OnInit {
         return apt.block.toLowerCase().includes(term) ||
           apt.number.toLowerCase().includes(term) ||
           fullIdentifier.includes(term) ||
-          (apt.owner?.name || '').toLowerCase().includes(term);
+          (apt.owner?.person?.name || '').toLowerCase().includes(term);
       })
       .sort((a, b) => {
         if (a.block !== b.block) return Number(a.block) - Number(b.block);
@@ -235,15 +235,15 @@ export class ApartmentListComponent implements OnInit {
       return;
     }
     this.filteredOwnerList = this.residents.filter(res =>
-      res.name.toLowerCase().includes(term) ||
-      (res.document && res.document.toLowerCase().includes(term))
+      res.person?.name.toLowerCase().includes(term) ||
+      (res.person?.document && res.person?.document.toLowerCase().includes(term))
     );
     this.showOwnerDropdown = true;
   }
 
   selectOwner(resident: any) {
     this.editApartment.owner_id = resident.id;
-    this.selectedOwnerName = resident.name;
+    this.selectedOwnerName = resident.person?.name || '';
     this.ownerSearchTerm = ''; // or keep name
     this.showOwnerDropdown = false;
   }
@@ -259,7 +259,7 @@ export class ApartmentListComponent implements OnInit {
       this.editApartment = { ...apartment };
       if (apartment.owner) {
         this.editApartment.owner_id = apartment.owner.id;
-        this.selectedOwnerName = apartment.owner.name;
+        this.selectedOwnerName = apartment.owner.person?.name || '';
       }
     } else {
       this.isEditing = false;

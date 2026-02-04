@@ -41,9 +41,12 @@ import { AuthService } from '../../../core/services/auth.service';
           </thead>
           <tbody class="text-gray-600 text-sm font-light">
             <tr *ngFor="let resident of filteredResidents()" class="border-b border-gray-200 hover:bg-gray-100">
-              <td class="py-3 px-6 text-left font-bold">{{ resident.name }}</td>
-              <td class="py-3 px-6 text-left">{{ resident.email || '-' }}</td>
-              <td class="py-3 px-6 text-left">{{ resident.phone || '-' }}</td>
+              <td class="py-3 px-6 text-left">
+                <div class="font-bold text-gray-900">{{ resident.person?.name }}</div>
+                <div class="text-xs text-gray-400">{{ resident.person?.document_type }} {{ resident.person?.document }}</div>
+              </td>
+              <td class="py-3 px-6 text-left">{{ resident.person?.email || '-' }}</td>
+              <td class="py-3 px-6 text-left">{{ resident.person?.phone || '-' }}</td>
               <td class="py-3 px-6 text-left">
                 {{ resident.apartment?.block }}{{ resident.apartment?.number }}
               </td>
@@ -69,18 +72,33 @@ import { AuthService } from '../../../core/services/auth.service';
       </div>
 
        <!-- Modal -->
-      <div *ngIf="isModalOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+      <div *ngIf="isModalOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center py-10">
         <div class="relative p-5 border w-96 shadow-lg rounded-md bg-white">
             <h3 class="text-lg font-bold mb-4">{{ isEditing ? 'Editar' : 'Crear' }} Residente</h3>
             <form (ngSubmit)="saveResident()">
+                <div class="flex gap-2 mb-4">
+                    <div class="w-1/3">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Tipo</label>
+                        <select [(ngModel)]="currentResident.document_type" name="document_type" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                            <option value="CC">CC</option>
+                            <option value="TI">TI</option>
+                            <option value="TE">TE</option>
+                            <option value="PAS">PAS</option>
+                            <option value="PEP">PEP</option>
+                            <option value="RC">RC</option>
+                        </select>
+                    </div>
+                    <div class="w-2/3">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Documento</label>
+                        <input [(ngModel)]="currentResident.document" (blur)="onDocumentBlur()" name="document" placeholder="Número" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    </div>
+                </div>
+
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Nombre</label>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Nombre Completo</label>
                     <input [(ngModel)]="currentResident.name" name="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                 </div>
-                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Documento</label>
-                    <input [(ngModel)]="currentResident.document" name="document" placeholder="Cédula / DNI" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                </div>
+
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2">Fecha Nacimiento</label>
                     <input [(ngModel)]="currentResident.birthdate" name="birthdate" type="date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
@@ -95,7 +113,7 @@ import { AuthService } from '../../../core/services/auth.service';
                     <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
                     <input [(ngModel)]="currentResident.email" name="email" type="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
-                 <div class="mb-4">
+                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-bold mb-2">Teléfono</label>
                     <input [(ngModel)]="currentResident.phone" name="phone" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
@@ -128,8 +146,13 @@ export class ResidentListComponent implements OnInit {
     return this.residents()
       .filter(res => {
         const fullApt = (res.apartment?.block || '') + (res.apartment?.number || '');
-        return res.name.toLowerCase().includes(term) ||
-          (res.email || '').toLowerCase().includes(term) ||
+        const personName = res.person?.name || '';
+        const personDoc = res.person?.document || '';
+        const personEmail = res.person?.email || '';
+
+        return personName.toLowerCase().includes(term) ||
+          personDoc.toLowerCase().includes(term) ||
+          personEmail.toLowerCase().includes(term) ||
           (res.apartment?.block || '').toLowerCase().includes(term) ||
           (res.apartment?.number || '').toLowerCase().includes(term) ||
           fullApt.toLowerCase().includes(term);
@@ -164,16 +187,46 @@ export class ResidentListComponent implements OnInit {
   openModal(resident: any = null) {
     if (resident) {
       this.isEditing = true;
-      this.currentResident = { ...resident };
-      // Ensure apartment_id is set correctly for select
-      if (resident.apartment) {
-        this.currentResident.apartment_id = resident.apartment.id;
-      }
+      this.currentResident = {
+        ...resident,
+        name: resident.person?.name,
+        document: resident.person?.document,
+        document_type: resident.person?.document_type,
+        email: resident.person?.email,
+        phone: resident.person?.phone,
+        apartment_id: resident.apartment?.id
+      };
     } else {
       this.isEditing = false;
-      this.currentResident = { name: '', document: '', birthdate: '', apartment_id: null, email: '', phone: '' };
+      this.currentResident = {
+        name: '',
+        document: '',
+        document_type: 'CC',
+        birthdate: '',
+        apartment_id: null,
+        email: '',
+        phone: ''
+      };
     }
     this.isModalOpen = true;
+  }
+
+  onDocumentBlur() {
+    if (!this.currentResident.document || this.isEditing) return;
+
+    this.apiService.getPersonByDocument(this.currentResident.document).subscribe({
+      next: (person) => {
+        if (person) {
+          this.currentResident.name = person.name;
+          this.currentResident.document_type = person.document_type;
+          this.currentResident.email = person.email;
+          this.currentResident.phone = person.phone;
+        }
+      },
+      error: () => {
+        // Person not found, user will fill manually
+      }
+    });
   }
 
   closeModal() {
