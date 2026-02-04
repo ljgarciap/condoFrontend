@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './features/auth/login/login.component';
 import { DashboardComponent } from './features/dashboard/dashboard/dashboard.component';
 import { authGuard } from './core/guards/auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
     { path: 'login', component: LoginComponent },
@@ -10,7 +11,10 @@ export const routes: Routes = [
         component: DashboardComponent,
         canActivate: [authGuard],
         children: [
-            { path: '', redirectTo: 'apartments', pathMatch: 'full' },
+            {
+                path: '',
+                loadComponent: () => import('./features/dashboard/summary/summary.component').then(m => m.SummaryComponent)
+            },
             {
                 path: 'apartments',
                 loadComponent: () => import('./features/apartments/apartment-list/apartment-list.component').then(m => m.ApartmentListComponent)
@@ -41,6 +45,28 @@ export const routes: Routes = [
             },
             {
                 path: 'cartera',
+                canActivate: [adminGuard],
+                loadComponent: () => import('./features/cartera/cartera-list/cartera-list.component').then(m => m.CarteraListComponent)
+            },
+            {
+                path: 'notifications',
+                loadComponent: () => import('./features/notifications/notification-list/notification-list.component').then(m => m.NotificationListComponent)
+            },
+            {
+                path: 'vigilantes',
+                canActivate: [adminGuard],
+                loadComponent: () => import('./features/users/vigilante-list/vigilante-list.component').then(m => m.VigilanteListComponent)
+            },
+            {
+                path: 'profile',
+                loadComponent: () => import('./features/profile/profile/profile.component').then(m => m.ProfileComponent)
+            },
+            {
+                path: 'my-vehicles',
+                loadComponent: () => import('./features/vehicles/vehicle-list/vehicle-list.component').then(m => m.VehicleListComponent)
+            },
+            {
+                path: 'my-cartera',
                 loadComponent: () => import('./features/cartera/cartera-list/cartera-list.component').then(m => m.CarteraListComponent)
             }
         ]

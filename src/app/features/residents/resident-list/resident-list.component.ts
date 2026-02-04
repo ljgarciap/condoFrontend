@@ -131,9 +131,21 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
                     <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
                     <input [(ngModel)]="currentResident.email" name="email" type="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
-                 <div class="mb-6">
+                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2">Teléfono</label>
                     <input [(ngModel)]="currentResident.phone" name="phone" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+
+                <div *ngIf="!isEditing" class="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" [(ngModel)]="currentResident.create_user" name="create_user" class="w-4 h-4 text-blue-600">
+                        <span class="text-sm font-bold text-blue-800">Crear usuario de acceso</span>
+                    </label>
+                    <div *ngIf="currentResident.create_user" class="mt-3 animate-in fade-in slide-in-from-top-1">
+                        <label class="block text-gray-700 text-xs font-bold mb-1">Contraseña Temporal</label>
+                        <input [(ngModel)]="currentResident.password" name="password" type="password" placeholder="Mínimo 6 caracteres" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" [required]="currentResident.create_user">
+                        <p class="text-[10px] text-blue-500 mt-1 italic">El correo registrado será su nombre de usuario.</p>
+                    </div>
                 </div>
 
                 <div class="flex justify-end gap-2">
@@ -219,7 +231,9 @@ export class ResidentListComponent implements OnInit {
         birthdate: '',
         apartment_id: null,
         email: '',
-        phone: ''
+        phone: '',
+        create_user: false,
+        password: ''
       };
     }
     this.isModalOpen = true;

@@ -15,6 +15,32 @@ export class ApiService {
         return this.http.get<any[]>(`${this.apiUrl}/users`);
     }
 
+    getDashboardStats(): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/dashboard/stats`);
+    }
+
+    // Notifications
+    getNotifications(page: number = 1, perPage: number = 10): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/notifications`, { params: { page, per_page: perPage } });
+    }
+
+    sendNotification(data: any): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/notifications`, data);
+    }
+
+    markNotificationRead(id: number): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/notifications/${id}/read`, {});
+    }
+
+    acceptPolicies(): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/policies/accept`, {});
+    }
+
+    // Vigilantes
+    createVigilante(data: any): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/vigilantes`, data);
+    }
+
     // Apartments
     getApartments(page: number = 1, search: string = '', perPage: number = 5): Observable<any> {
         let params: any = { page, per_page: perPage };

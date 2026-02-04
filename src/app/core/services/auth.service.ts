@@ -57,4 +57,14 @@ export class AuthService {
     const user = this.currentUser();
     return user && user.role?.name === 'vigilante';
   }
+
+  isResident(): boolean {
+    const user = this.currentUser();
+    return user && user.role?.name === 'resident';
+  }
+
+  needsPolicyAcceptance(): boolean {
+    const user = this.currentUser();
+    return this.isResident() && user && !user.policies_accepted_at;
+  }
 }
