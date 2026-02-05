@@ -100,7 +100,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
       ></app-pagination>
 
        <!-- Modal -->
-      <div *ngIf="isModalOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center py-10">
+      <div *ngIf="isModalOpen" class="fixed inset-0 z-50 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="relative p-5 border w-96 shadow-lg rounded-md bg-white">
             <h3 class="text-lg font-bold mb-4">{{ isEditing ? 'Editar' : 'Crear' }} Residente</h3>
             

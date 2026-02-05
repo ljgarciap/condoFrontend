@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../core/services/api.service';
 
@@ -16,15 +16,36 @@ import { ApiService } from '../../../core/services/api.service';
 
       <div *ngIf="!isLoading()" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Residentes -->
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
-            <div class="p-4 bg-blue-100 rounded-lg text-blue-600 mr-4">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                </svg>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div class="flex items-center mb-4">
+                <div class="p-4 bg-blue-100 rounded-lg text-blue-600 mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                    </svg>
+                </div>
+                <div>
+                   <p class="text-sm text-gray-500 font-medium">Población</p>
+                   <p class="text-2xl font-bold text-gray-800">{{ stats().residents.total }} Residentes</p>
+                </div>
             </div>
-            <div>
-                <p class="text-sm text-gray-500 font-medium">Residentes Registrados</p>
-                <p class="text-2xl font-bold text-gray-800">{{ stats().residents.total }}</p>
+            
+            <div class="border-t border-gray-50 pt-3 mt-2">
+                <p class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                    <span>🐾 Mascotas: {{ stats().pets.total }}</span>
+                    <span *ngIf="stats().pets.unvaccinated > 0" class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
+                        {{ stats().pets.unvaccinated }} sin vacuna ⚠️
+                    </span>
+                </p>
+                <div class="grid grid-cols-2 gap-2 text-xs text-gray-500">
+                    <div class="flex items-center gap-1">
+                        <span class="text-lg">🐶</span>
+                        <span>{{ stats().pets.dogs }} Perros</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="text-lg">🐱</span>
+                        <span>{{ stats().pets.cats }} Gatos</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -43,11 +64,11 @@ import { ApiService } from '../../../core/services/api.service';
                 <span class="font-bold">{{ stats().apartments.total }}</span>
             </div>
             <div class="flex justify-between text-sm mt-1">
-                <span class="text-green-600">Completos:</span>
+                <span class="text-green-600">Datos completos:</span>
                 <span class="font-bold">{{ stats().apartments.complete }}</span>
             </div>
             <div class="flex justify-between text-sm mt-1">
-                <span class="text-yellow-600">Incompletos:</span>
+                <span class="text-yellow-600">Datos incompletos:</span>
                 <span class="font-bold">{{ stats().apartments.incomplete }}</span>
             </div>
         </div>
@@ -63,21 +84,42 @@ import { ApiService } from '../../../core/services/api.service';
                 <h3 class="font-bold text-gray-700">Vehículos</h3>
             </div>
             <div class="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                    <span class="text-gray-500">Total:</span>
-                    <p class="font-bold">{{ stats().vehicles.total }}</p>
+                <div class="col-span-2 pb-2 border-b border-gray-50 mb-2">
+                    <span class="text-gray-500 font-bold block mb-1">Registrados Total:</span>
+                     <div class="flex items-center gap-4">
+                        <div>
+                            <span class="text-3xl font-black text-gray-800">{{ stats().vehicles.total }}</span>
+                        </div>
+                        <div class="text-xs space-y-1">
+                            <div class="flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                <span class="text-gray-600">Carros: <b>{{ stats().vehicles.cars }}</b></span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                                <span class="text-gray-600">Motos: <b>{{ stats().vehicles.motos }}</b></span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <span class="text-blue-600 font-medium">Adentro:</span>
-                    <p class="font-bold">{{ stats().vehicles.inside }}</p>
-                </div>
-                <div>
-                    <span class="text-gray-500 text-xs">Carros:</span>
-                    <p class="font-bold">{{ stats().vehicles.cars }}</p>
-                </div>
-                <div>
-                    <span class="text-gray-500 text-xs">Motos:</span>
-                    <p class="font-bold">{{ stats().vehicles.motos }}</p>
+
+                <div class="col-span-2">
+                    <span class="text-blue-600 font-bold block mb-1">Adentro Ahora:</span>
+                    <div class="flex items-center gap-4">
+                        <div>
+                            <span class="text-3xl font-black text-gray-800">{{ stats().vehicles.inside }}</span>
+                        </div>
+                        <div class="text-xs space-y-1">
+                            <div class="flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                <span class="text-gray-600">Carros: <b>{{ stats().vehicles.cars_inside }}</b></span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                                <span class="text-gray-600">Motos: <b>{{ stats().vehicles.motos_inside }}</b></span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -133,7 +175,7 @@ import { ApiService } from '../../../core/services/api.service';
   `,
     styles: []
 })
-export class SummaryComponent implements OnInit {
+export class SummaryComponent implements OnInit, OnDestroy {
     apiService = inject(ApiService);
     stats = signal<any>({
         residents: { total: 0 },
@@ -141,11 +183,24 @@ export class SummaryComponent implements OnInit {
         vehicles: { total: 0, cars: 0, motos: 0, inside: 0 },
         portfolio: { in_debt_count: 0, total_overdue: 0 },
         visitors: { inside: 0 },
-        demographics: { over_70: 0, under_18: 0 }
+        demographics: { over_70: 0, under_18: 0 },
+        pets: { total: 0, dogs: 0, cats: 0, vaccinated: 0, unvaccinated: 0 }
     });
     isLoading = signal<boolean>(true);
 
+    intervalId: any;
+
     ngOnInit() {
+        this.loadStats();
+        // Live update dashboard stats
+        this.intervalId = setInterval(() => this.loadStats(), 15000);
+    }
+
+    ngOnDestroy() {
+        if (this.intervalId) clearInterval(this.intervalId);
+    }
+
+    loadStats() {
         this.apiService.getDashboardStats().subscribe({
             next: (data) => {
                 this.stats.set(data);

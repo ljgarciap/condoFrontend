@@ -29,7 +29,10 @@ export class AuthService {
 
   logout() {
     return this.http.post(`${this.apiUrl}/logout`, {}).pipe(
-      tap(() => this.doLogout())
+      tap({
+        next: () => this.doLogout(),
+        error: () => this.doLogout()
+      })
     );
   }
 

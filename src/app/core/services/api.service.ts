@@ -182,4 +182,23 @@ export class ApiService {
     updateVisit(id: number, data: any): Observable<any> {
         return this.http.put<any>(`${this.apiUrl}/visits/${id}`, data);
     }
+
+    // Pets
+    getPets(page: number = 1, search: string = '', perPage: number = 10): Observable<any> {
+        let params: any = { page, per_page: perPage };
+        if (search) params.search = search;
+        return this.http.get<any>(`${this.apiUrl}/pets`, { params });
+    }
+
+    createPet(pet: any): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/pets`, pet);
+    }
+
+    updatePet(id: number, pet: any): Observable<any> {
+        return this.http.put<any>(`${this.apiUrl}/pets/${id}`, pet);
+    }
+
+    deletePet(id: number): Observable<any> {
+        return this.http.delete<any>(`${this.apiUrl}/pets/${id}`);
+    }
 }

@@ -10,13 +10,13 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
     standalone: true,
     imports: [CommonModule, FormsModule, PaginationComponent],
     template: `
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="container mx-auto">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-800">Centro de Notificaciones</h2>
           <p class="text-sm sm:text-base text-gray-500">Comunicaciones entre administración y residentes</p>
         </div>
-        <button (click)="openModal()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-colors flex items-center justify-center gap-2">
+        <button (click)="openModal()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-colors flex items-center justify-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
@@ -80,8 +80,8 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
       </div>
 
       <!-- Modal -->
-      <div *ngIf="isModalOpen" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-        <div class="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
+      <div *ngIf="isModalOpen" class="fixed inset-0 z-50 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
             <h3 class="text-2xl font-black mb-6 text-gray-800 flex items-center gap-3">
                 <div class="p-2 bg-indigo-100 text-indigo-600 rounded-xl">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">

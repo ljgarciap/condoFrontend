@@ -23,10 +23,6 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/apartments/apartment-list/apartment-list.component').then(m => m.ApartmentListComponent)
             },
             {
-                path: 'people',
-                loadComponent: () => import('./features/people/person-list/person-list.component').then(m => m.PersonListComponent)
-            },
-            {
                 path: 'residents',
                 canActivate: [adminOrVigilanteGuard],
                 loadComponent: () => import('./features/residents/resident-list/resident-list.component').then(m => m.ResidentListComponent)
@@ -46,6 +42,11 @@ export const routes: Routes = [
             {
                 path: 'visitors',
                 loadComponent: () => import('./features/visitors/visitor-list/visitor-list.component').then(m => m.VisitorListComponent)
+            },
+            {
+                path: 'pets',
+                canActivate: [adminOrVigilanteGuard],
+                loadComponent: () => import('./features/pets/pet-list/pet-list.component').then(m => m.PetListComponent)
             },
             {
                 path: 'cartera',
