@@ -58,8 +58,12 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
                 <div class="text-[10px] text-gray-400 font-mono">{{ u.person?.document_type }} {{ u.person?.document }}</div>
               </td>
               <td class="py-4 px-6 text-left">
-                  <span [ngClass]="{'bg-purple-100 text-purple-700': u.role?.name === 'admin', 'bg-blue-100 text-blue-700': u.role?.name === 'vigilante'}" class="px-3 py-1 rounded-full text-xs font-bold uppercase">
-                      {{ u.role?.name === 'admin' ? 'Administrador' : 'Vigilante' }}
+                  <span [ngClass]="{
+                      'bg-purple-100 text-purple-700': u.role?.name === 'admin', 
+                      'bg-blue-100 text-blue-700': u.role?.name === 'vigilante',
+                      'bg-green-100 text-green-700': u.role?.name === 'resident'
+                    }" class="px-3 py-1 rounded-full text-xs font-bold uppercase">
+                      {{ u.role?.name === 'admin' ? 'Administrador' : (u.role?.name === 'resident' ? 'Residente' : 'Vigilante') }}
                   </span>
               </td>
               <td class="py-4 px-6 text-left">
@@ -106,6 +110,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
                     <select [(ngModel)]="currentUser.role_name" name="role_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                         <option value="admin">Administrador</option>
                         <option value="vigilante">Vigilante</option>
+                        <option value="resident">Residente</option>
                     </select>
                 </div>
 

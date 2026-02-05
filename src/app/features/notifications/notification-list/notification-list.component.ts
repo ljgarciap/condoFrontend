@@ -96,7 +96,11 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
                     <label class="block text-xs font-black uppercase text-gray-400 mb-1 ml-1">Destinatario</label>
                     <select [(ngModel)]="currentNote.receiver_id" name="receiver_id" class="w-full bg-gray-50 border-2 border-gray-100 rounded-xl py-3 px-4 focus:bg-white focus:border-indigo-500 transition-all outline-none">
                         <option [value]="null">Todos (Broadcast)</option>
-                        <option *ngFor="let user of users()" [value]="user.id">{{ user.person?.name }} ({{ user.role?.name }})</option>
+                        <option *ngFor="let user of users()" [value]="user.id">
+                            {{ user.person?.name }} 
+                            <span *ngIf="user.role?.name === 'resident'">- Apto {{ user.resident?.apartment?.block }}{{ user.resident?.apartment?.number }}</span>
+                            ({{ user.role?.name }})
+                        </option>
                     </select>
                 </div>
 
@@ -176,9 +180,9 @@ export class NotificationListComponent implements OnInit {
     }
 
     loadUsers() {
-        // We need an endpoint or use existing getUsers
-        this.apiService.getUsers().subscribe(users => {
-            this.users.set(users.filter((u: any) => u.id !== this.authService.currentUser().id));
+        this.apiService.getUsers(1, '', null).subscribe(response => {
+            const allUsers = Array.isArray(response) ? response : (response.data || []);
+            this.users.set(allUsers.filter((u: any) => u.id !== this.authService.currentUser()?.id));
         });
     }
 

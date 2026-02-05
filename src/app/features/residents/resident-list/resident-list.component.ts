@@ -49,7 +49,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
               <th class="py-3 px-6 text-left">Teléfono</th>
               <th class="py-3 px-6 text-left">Apartamento</th>
               <th class="py-3 px-6 text-center">Nacimiento</th>
-              <th class="py-3 px-6 text-center">Acciones</th>
+              <th class="py-3 px-6 text-center" *ngIf="authService.isAdmin()">Acciones</th>
             </tr>
           </thead>
           <tbody class="text-gray-600 text-sm font-light">

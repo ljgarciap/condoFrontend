@@ -1,12 +1,13 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-parking-history',
   standalone: true,
-  imports: [CommonModule, PaginationComponent],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   template: `
     <div class="container mx-auto">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -14,12 +15,28 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
             <h2 class="text-3xl font-extrabold text-gray-800">Historial de Movimientos</h2>
             <p class="text-gray-500">Registro de entradas y salidas</p>
         </div>
-        <button (click)="loadHistory()" class="w-full sm:w-auto text-blue-500 hover:text-blue-700 flex items-center justify-center sm:justify-end gap-2 px-4 py-2 border border-blue-100 rounded-lg hover:bg-blue-50 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-            </svg>
-            Actualizar
-        </button>
+        <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <div class="relative w-full sm:w-auto">
+                <input 
+                    type="text" 
+                    [(ngModel)]="searchQuery"
+                    (keyup.enter)="onSearch()"
+                    placeholder="Buscar placa, apto..." 
+                    class="border-2 border-gray-300 rounded-lg py-2 px-4 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 w-full sm:w-64 transition-all"
+                >
+                <button (click)="onSearch()" class="absolute right-2 top-2 text-gray-400 hover:text-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                    </svg>
+                </button>
+            </div>
+            <button (click)="loadHistory()" class="text-blue-500 hover:text-blue-700 flex items-center justify-center sm:justify-end gap-2 px-4 py-2 border border-blue-100 rounded-lg hover:bg-blue-50 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+                Actualizar
+            </button>
+        </div>
       </div>
 
       <div *ngIf="isLoading()" class="text-center py-10">
@@ -108,6 +125,7 @@ export class ParkingHistoryComponent implements OnInit {
   movements = signal<any[]>([]);
   stationary = signal<any[]>([]);
   isLoading = signal<boolean>(false);
+  searchQuery = '';
   perPage = 5;
   paginationData: any = { current_page: 1, last_page: 1, total: 0, from: 0, to: 0 };
 
@@ -117,7 +135,7 @@ export class ParkingHistoryComponent implements OnInit {
 
   loadHistory(page: number = 1) {
     this.isLoading.set(true);
-    this.apiService.getParkingHistory(page, this.perPage).subscribe({
+    this.apiService.getParkingHistory(page, this.perPage, this.searchQuery).subscribe({
       next: (response) => {
         this.movements.set(response.movements.data);
         this.paginationData = {
@@ -132,6 +150,10 @@ export class ParkingHistoryComponent implements OnInit {
       },
       error: () => this.isLoading.set(false)
     });
+  }
+
+  onSearch() {
+    this.loadHistory(1);
   }
 
   onPageChange(page: number) {

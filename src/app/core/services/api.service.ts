@@ -11,8 +11,9 @@ export class ApiService {
     constructor(private http: HttpClient) { }
 
     // Users
-    getUsers(page: number = 1, search: string = '', perPage: number = 10): Observable<any> {
-        let params: any = { page, per_page: perPage };
+    getUsers(page: number = 1, search: string = '', perPage: number | null = 10): Observable<any> {
+        let params: any = { page };
+        if (perPage) params.per_page = perPage;
         if (search) params.search = search;
         return this.http.get<any>(`${this.apiUrl}/users`, { params });
     }
@@ -160,8 +161,10 @@ export class ApiService {
         return this.http.post<any>(`${this.apiUrl}/parking/settings`, settings);
     }
 
-    getParkingHistory(page: number = 1, perPage: number = 20): Observable<any> {
-        return this.http.get<any>(`${this.apiUrl}/parking/history`, { params: { page, per_page: perPage } });
+    getParkingHistory(page: number = 1, perPage: number = 20, search: string = ''): Observable<any> {
+        let params: any = { page, per_page: perPage };
+        if (search) params.search = search;
+        return this.http.get<any>(`${this.apiUrl}/parking/history`, { params });
     }
 
     // People & Visits

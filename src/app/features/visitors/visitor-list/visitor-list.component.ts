@@ -15,12 +15,28 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
             <h2 class="text-3xl font-extrabold text-gray-800">Registro de Visitantes</h2>
             <p class="text-gray-500">Control de ingresos y salidas</p>
         </div>
-        <button (click)="openModal()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Nuevo Ingreso
-        </button>
+        <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <div class="relative w-full sm:w-auto">
+                <input 
+                    type="text" 
+                    [(ngModel)]="searchQuery"
+                    (keyup.enter)="onSearch()"
+                    placeholder="Buscar..." 
+                    class="border-2 border-gray-300 rounded-lg py-2 px-4 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 w-full sm:w-64 transition-all"
+                >
+                <button (click)="onSearch()" class="absolute right-2 top-2 text-gray-400 hover:text-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                    </svg>
+                </button>
+            </div>
+            <button (click)="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Nuevo Ingreso
+            </button>
+        </div>
       </div>
 
       <div class="bg-white shadow-xl rounded-xl overflow-hidden overflow-x-auto border border-gray-100 my-6">
@@ -139,6 +155,7 @@ export class VisitorListComponent implements OnInit {
   apiService = inject(ApiService);
   visits = signal<any[]>([]);
   apartments: any[] = [];
+  searchQuery = '';
   perPage = 5;
   paginationData: any = { current_page: 1, last_page: 1, total: 0, from: 0, to: 0 };
 
@@ -151,7 +168,7 @@ export class VisitorListComponent implements OnInit {
   }
 
   loadVisits(page: number = 1) {
-    this.apiService.getVisits(page, '', this.perPage).subscribe(response => {
+    this.apiService.getVisits(page, this.searchQuery, this.perPage).subscribe(response => {
       this.visits.set(response.data);
       this.paginationData = {
         current_page: response.current_page,
@@ -161,6 +178,10 @@ export class VisitorListComponent implements OnInit {
         to: response.to
       };
     });
+  }
+
+  onSearch() {
+    this.loadVisits(1);
   }
 
   onPageChange(page: number) {
