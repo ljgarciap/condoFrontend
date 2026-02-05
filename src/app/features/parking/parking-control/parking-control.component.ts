@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
@@ -46,28 +46,40 @@ import { AuthService } from '../../../core/services/auth.service';
       <div class="bg-white shadow-lg rounded-lg p-8">
         <label class="block text-gray-700 text-sm font-bold mb-2">Placa del Vehículo</label>
         <input 
+          #plateInput
           [(ngModel)]="plate" 
           type="text" 
-          placeholder="ABC-123"
+          placeholder="Placa o Código..."
           (input)="plate = plate.toUpperCase()"
+          (keyup.enter)="registerSmartAccess()"
           class="w-full px-4 py-3 rounded-lg bg-gray-200 border border-gray-300 focus:outline-none focus:border-blue-500 mb-6 uppercase text-xl text-center tracking-widest"
         >
+
+        <div class="flex gap-4 mb-4">
+           <button 
+            (click)="registerSmartAccess()" 
+            [disabled]="!plate || isLoading"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg shadow-md transition-all flex items-center justify-center gap-3 text-lg"
+          >
+            <span class="text-2xl">⚡</span> Escanear / Registrar
+          </button>
+        </div>
 
         <div class="flex gap-4">
           <button 
             (click)="registerEntry()" 
             [disabled]="!plate || isLoading"
-            class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 transition"
+            class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 transition text-sm"
           >
-            Registrar Entrada
+            Manual Entrada
           </button>
           
           <button 
             (click)="registerExit()"
-             [disabled]="!plate || isLoading" 
-            class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 transition"
+            [disabled]="!plate || isLoading" 
+            class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 transition text-sm"
           >
-            Registrar Salida
+            Manual Salida
           </button>
         </div>
 
@@ -107,9 +119,12 @@ import { AuthService } from '../../../core/services/auth.service';
   `,
   styles: []
 })
-export class ParkingControlComponent implements OnInit {
+export class ParkingControlComponent implements OnInit, AfterViewInit {
   authService = inject(AuthService);
   apiService = inject(ApiService);
+
+  @ViewChild('plateInput') plateInput!: ElementRef;
+
   plate = '';
   message = '';
   isError = false;
@@ -126,6 +141,15 @@ export class ParkingControlComponent implements OnInit {
 
   ngOnInit() {
     this.loadStatus();
+  }
+
+  ngAfterViewInit() {
+    // Force focus after view initialization
+    setTimeout(() => {
+      if (this.plateInput) {
+        this.plateInput.nativeElement.focus();
+      }
+    }, 500);
   }
 
   loadStatus() {
@@ -156,6 +180,11 @@ export class ParkingControlComponent implements OnInit {
     });
   }
 
+  registerSmartAccess() {
+    this.plate = this.plate.toUpperCase();
+    this.processAction(() => this.apiService.registerAccess(this.plate));
+  }
+
   registerEntry() {
     this.plate = this.plate.toUpperCase();
     this.processAction(() => this.apiService.registerEntry(this.plate));
@@ -178,6 +207,7 @@ export class ParkingControlComponent implements OnInit {
         this.isError = false;
         this.plate = ''; // Clear input on success
         this.loadStatus(); // Reload stats
+        setTimeout(() => this.plateInput.nativeElement.focus(), 100);
       },
       error: (err: any) => {
         this.isLoading = false;

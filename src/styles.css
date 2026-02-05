@@ -1,3 +1,40 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    #printable-card,
+    #printable-card * {
+        visibility: visible;
+    }
+
+    #printable-card {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 100% !important;
+        height: auto !important;
+        max-width: 350px;
+        margin: 0;
+        padding: 0;
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    /* Ensure background graphics print */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        /* Chrome, Safari */
+        print-color-adjust: exact !important;
+        /* Firefox */
+    }
+}

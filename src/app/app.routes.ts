@@ -58,9 +58,9 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/notifications/notification-list/notification-list.component').then(m => m.NotificationListComponent)
             },
             {
-                path: 'vigilantes',
+                path: 'users',
                 canActivate: [adminGuard],
-                loadComponent: () => import('./features/users/vigilante-list/vigilante-list.component').then(m => m.VigilanteListComponent)
+                loadComponent: () => import('./features/users/user-list/user-list.component').then(m => m.UserListComponent)
             },
             {
                 path: 'profile',

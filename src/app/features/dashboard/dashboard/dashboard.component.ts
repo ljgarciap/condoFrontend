@@ -26,7 +26,7 @@ import { PolicyModalComponent } from '../../../shared/components/policy-modal/po
             <a *ngIf="authService.isAdmin()" routerLink="/dashboard/apartments" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Apartamentos</a>
             <a *ngIf="authService.isAdmin()" routerLink="/dashboard/residents" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Residentes</a>
             <a routerLink="/dashboard/pets" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Mascotas</a>
-            <a *ngIf="authService.isAdmin()" routerLink="/dashboard/vigilantes" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Vigilantes</a>
+            <a *ngIf="authService.isAdmin()" routerLink="/dashboard/users" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Usuarios</a>
             <a *ngIf="authService.isAdmin()" routerLink="/dashboard/vehicles" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Vehículos</a>
             <a routerLink="/dashboard/parking" routerLinkActive="bg-gray-700" [routerLinkActiveOptions]="{exact: true}" class="block p-2 rounded hover:bg-gray-700">Control Parqueadero</a>
             <a routerLink="/dashboard/parking/history" routerLinkActive="bg-gray-700" class="block p-2 rounded hover:bg-gray-700">Histórico Parqueadero</a>

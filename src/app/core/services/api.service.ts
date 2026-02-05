@@ -11,8 +11,22 @@ export class ApiService {
     constructor(private http: HttpClient) { }
 
     // Users
-    getUsers(): Observable<any[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/users`);
+    getUsers(page: number = 1, search: string = '', perPage: number = 10): Observable<any> {
+        let params: any = { page, per_page: perPage };
+        if (search) params.search = search;
+        return this.http.get<any>(`${this.apiUrl}/users`, { params });
+    }
+
+    createUser(data: any): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/users`, data);
+    }
+
+    updateUser(id: number, data: any): Observable<any> {
+        return this.http.put<any>(`${this.apiUrl}/users/${id}`, data);
+    }
+
+    deleteUser(id: number): Observable<any> {
+        return this.http.delete<any>(`${this.apiUrl}/users/${id}`);
     }
 
     getDashboardStats(): Observable<any> {
@@ -44,10 +58,10 @@ export class ApiService {
         return this.http.post<any>(`${this.apiUrl}/chunks/upload`, data);
     }
 
-    // Vigilantes
-    createVigilante(data: any): Observable<any> {
-        return this.http.post<any>(`${this.apiUrl}/vigilantes`, data);
-    }
+    // Vigilantes (Legacy - use createUser)
+    // createVigilante(data: any): Observable<any> {
+    //     return this.http.post<any>(`${this.apiUrl}/vigilantes`, data);
+    // }
 
     // Apartments
     getApartments(page: number = 1, search: string = '', perPage: number = 5): Observable<any> {
@@ -132,6 +146,10 @@ export class ApiService {
 
     registerExit(plate: string): Observable<any> {
         return this.http.post<any>(`${this.apiUrl}/parking/exit`, { plate });
+    }
+
+    registerAccess(identifier: string): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/parking/access`, { identifier });
     }
 
     getParkingStatus(): Observable<any> {
