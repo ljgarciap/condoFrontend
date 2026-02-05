@@ -11,6 +11,9 @@ import { AuthService } from '../../../core/services/auth.service';
   template: `
     <div class="flex items-center justify-center min-h-screen bg-gray-100">
       <div class="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+        <div class="flex justify-center mb-6">
+            <img src="/ciudadela.png" alt="Logo Ciudadela" class="h-20 w-auto">
+        </div>
         <h2 class="mb-6 text-2xl font-bold text-center text-gray-800">Iniciar Sesión</h2>
         
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
